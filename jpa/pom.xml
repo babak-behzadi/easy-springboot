@@ -12,7 +12,7 @@
     <artifactId>jpa</artifactId>
     <version>1.0.0</version>
     <name>jpa</name>
-    <description>jpa</description>
+    <description>A library to create easy dynamic queries</description>
     <url/>
     <licenses>
         <license/>

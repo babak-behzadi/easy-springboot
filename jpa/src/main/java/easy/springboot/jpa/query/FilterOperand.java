@@ -1,6 +1,6 @@
 package easy.springboot.jpa.query;
 
-public enum Operand {
+public enum FilterOperand {
 
     EQ,
     NOT_EQ,
@@ -15,5 +15,9 @@ public enum Operand {
     LIKE,
     LIKE_CI,
     NOT_LIKE,
-    NOT_LIKE_CI
+    NOT_LIKE_CI,
+    STARTS_WITH,
+    STARTS_WITH_CI,
+    ENDS_WITH,
+    ENDS_WITH_CI,
 }
