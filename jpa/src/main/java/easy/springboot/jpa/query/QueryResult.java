@@ -2,7 +2,6 @@ package easy.springboot.jpa.query;
 
 import org.springframework.data.domain.Page;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 

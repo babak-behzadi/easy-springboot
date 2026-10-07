@@ -21,7 +21,7 @@ public abstract class BaseService<E extends BaseEntity<ID>, ID, R extends BaseRe
 
     public <F extends FilterModel> QueryResult<E> query(F filterModel) {
         Page<E> page = repository.findAll(filterModel.toSpecification(),
-                PageRequest.of(filterModel.getPage(), filterModel.getPageSize()));
+                PageRequest.of(filterModel.getPage(), filterModel.getPageSize() <= 0 ? 10 : filterModel.getPageSize()));
         long total = repository.count(filterModel.toSpecification());
         return new QueryResult<>(page, total);
     }

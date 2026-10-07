@@ -66,6 +66,9 @@ public abstract class FilterModel implements Serializable {
                     searchFields().forEach(field -> {
                         FilterField filterField = field.getAnnotation(FilterField.class);
                         Object value = fieldValue(field);
+                        if (value == null) {
+                            return;
+                        }
                         FilterOperand operand = filterField.operand();
                         Predicate predicate = switch (operand) {
                             case EQ -> criteriaBuilder.equal(from.get(field.getName()), value);
