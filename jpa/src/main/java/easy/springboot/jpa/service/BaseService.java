@@ -7,7 +7,7 @@ import easy.springboot.jpa.repository.BaseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-public abstract class BaseService<E extends BaseEntity<ID>, ID, R extends BaseRepository<E, ID>> {
+public abstract class BaseService<E extends BaseEntity, ID, R extends BaseRepository<E, ID>> {
 
     private final R repository;
 
