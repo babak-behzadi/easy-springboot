@@ -25,4 +25,16 @@ public abstract class BaseService<E extends BaseEntity<ID>, ID, R extends BaseRe
         long total = repository.count(filterModel.toSpecification());
         return new QueryResult<>(page, total);
     }
+
+    public E create(E entity) {
+        return repository.save(entity);
+    }
+
+    public E update(E entity) {
+        return repository.save(entity);
+    }
+
+    public void delete(E entity) {
+        repository.delete(entity);
+    }
 }
