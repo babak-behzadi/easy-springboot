@@ -7,6 +7,8 @@ import easy.springboot.jpa.repository.BaseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
+
 public abstract class BaseService<E extends BaseEntity, ID, R extends BaseRepository<E, ID>> {
 
     private final R repository;
@@ -24,6 +26,12 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
                 PageRequest.of(filterModel.getPage(), filterModel.getPageSize() <= 0 ? 10 : filterModel.getPageSize()));
         long total = repository.count(filterModel.toSpecification());
         return new QueryResult<>(page, total);
+    }
+
+    public <F extends FilterModel> QueryResult<E> queryAll(F filterModel) {
+        List<E> list = repository.findAll(filterModel.toSpecification());
+        long total = repository.count(filterModel.toSpecification());
+        return new QueryResult<>(list, total);
     }
 
     public E create(E entity) {

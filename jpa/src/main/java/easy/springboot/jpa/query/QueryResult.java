@@ -36,6 +36,13 @@ public class QueryResult<R> {
         this.rows = (List<R>) page.getContent().stream().toList();
     }
 
+    public QueryResult(List<R> rows, long total) {
+        this.page = 0;
+        this.pageSize = Integer.MAX_VALUE;
+        this.total = total;
+        this.rows = rows;
+    }
+
     public QueryResult<R> mutate(Consumer<R> consumer) {
         this.rows.forEach(consumer);
         return this;
