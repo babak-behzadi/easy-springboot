@@ -3,7 +3,8 @@ package easy.springboot.jpa.query;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class QueryResult<R> {
 
@@ -36,15 +37,22 @@ public class QueryResult<R> {
         this.rows = (List<R>) page.getContent().stream().toList();
     }
 
-    public QueryResult(List<R> rows, long total) {
-        this.page = 0;
-        this.pageSize = Integer.MAX_VALUE;
+    public QueryResult(List<R> rows, int page, int pageSize, long total) {
+        this.page = page;
+        this.pageSize = pageSize;
         this.total = total;
         this.rows = rows;
     }
 
-    public QueryResult<R> mutate(Consumer<R> consumer) {
-        this.rows.forEach(consumer);
-        return this;
+    public QueryResult(List<R> rows, long total) {
+        this(rows, 0, Integer.MAX_VALUE, total);
+    }
+
+    public <M> QueryResult<M> mutate(Function<R, M> mutator) {
+        return new QueryResult<>(
+                this.rows.stream().map(mutator).collect(Collectors.toList()),
+                this.page,
+                this.pageSize,
+                this.total);
     }
 }
