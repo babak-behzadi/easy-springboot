@@ -38,17 +38,6 @@ public abstract class FilterModel implements Serializable {
                 .toList();
     }
 
-    private Object fieldValue(Field field) {
-        try {
-            field.setAccessible(true);
-            Object value = field.get(this);
-            field.setAccessible(false);
-            return value;
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private String likeValue(String s, FilterOperand operand) {
         return switch (operand) {
             case LIKE, LIKE_CI, NOT_LIKE, NOT_LIKE_CI -> "%" + s + "%";
@@ -65,7 +54,9 @@ public abstract class FilterModel implements Serializable {
                     List<Predicate> predicates = new ArrayList<>();
                     searchFields().forEach(field -> {
                         FilterField filterField = field.getAnnotation(FilterField.class);
-                        Object value = fieldValue(field);
+                        if (!filterField.relation().isEmpty()) {
+                        }
+                        Object value = ReflectionUtils.fieldValue(this, field);
                         if (value == null) {
                             return;
                         }
