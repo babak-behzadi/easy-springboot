@@ -48,6 +48,13 @@ public class QueryResult<R> {
         this(rows, 0, Integer.MAX_VALUE, total);
     }
 
+    /**
+     * mutate query result list objects
+     *
+     * @param mutator
+     * @return {@link QueryResult<M>}
+     * @param <M>
+     */
     public <M> QueryResult<M> mutate(Function<R, M> mutator) {
         return new QueryResult<>(
                 this.rows.stream().map(mutator).collect(Collectors.toList()),
