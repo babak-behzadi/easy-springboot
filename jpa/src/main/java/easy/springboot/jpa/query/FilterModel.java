@@ -53,14 +53,24 @@ public abstract class FilterModel implements Serializable {
      */
     private String createLikeExpression(String s, FilterOperand operand) {
         return switch (operand) {
-            case LIKE, LIKE_CI, NOT_LIKE, NOT_LIKE_CI -> "%" + s + "%";
-            case STARTS_WITH, STARTS_WITH_CI -> s + "%";
-            case ENDS_WITH, ENDS_WITH_CI -> "%" + s;
+            case LIKE, NOT_LIKE -> "%" + s + "%";
+            case LIKE_CI, NOT_LIKE_CI -> "%" + s.toLowerCase() + "%";
+            case STARTS_WITH -> s + "%";
+            case STARTS_WITH_CI -> s.toLowerCase() + "%";
+            case ENDS_WITH -> "%" + s;
+            case ENDS_WITH_CI -> "%" + s.toLowerCase();
             default -> throw new RuntimeException("Invalid operand type " + operand);
         };
     }
 
-    private Path<?> extractFieldPath(From<?, ?> from, String fieldName) {
+    /**
+     * extract join field path
+     *
+     * @param from
+     * @param fieldName
+     * @return {@link Path}
+     */
+    private Path<?> extractJoinFieldPath(From<?, ?> from, String fieldName) {
         String[] parts = fieldName.split("\\.");
         From<?, ?> current = from;
         for (int i = 0; i < parts.length - 1; i++) {
@@ -86,9 +96,11 @@ public abstract class FilterModel implements Serializable {
                         if (value == null) {
                             return;
                         }
-                        Path<?> fieldPath = from.get(field.getName());
+                        Path<?> fieldPath = null;
                         if (filterField.value().contains(".")) {
-                            fieldPath = extractFieldPath(from, filterField.value());
+                            fieldPath = extractJoinFieldPath(from, filterField.value());
+                        } else {
+                            fieldPath = from.get(field.getName());
                         }
                         FilterOperand operand = filterField.operand();
                         Predicate predicate = switch (operand) {
