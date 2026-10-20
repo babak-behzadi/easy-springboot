@@ -9,9 +9,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface FilterField {
 
-    String relation() default "";
+    /**
+     * filter field name
+     *
+     * @return {@link String}
+     */
+    String value();
 
-    String column();
-
+    /**
+     * query operand that will be done on the field
+     *
+     * @return {@link FilterField}
+     */
     FilterOperand operand();
 }

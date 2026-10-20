@@ -1,7 +1,8 @@
 package easy.springboot.jpa.query;
 
+import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.reflect.ReflectionUtils;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serializable;
@@ -31,14 +32,26 @@ public abstract class FilterModel implements Serializable {
         this.pageSize = pageSize;
     }
 
-    private List<Field> searchFields() {
+    /**
+     * finds all fields annotated with {@link FilterField}- inherited fields included-
+     *
+     * @return {@link List<Field>}
+     */
+    private List<Field> findAllFilterFields() {
         return ReflectionUtils.allFields(this.getClass(), new ArrayList<>())
                 .stream()
                 .filter(field -> field.isAnnotationPresent(FilterField.class))
                 .toList();
     }
 
-    private String likeValue(String s, FilterOperand operand) {
+    /**
+     * creates like expression for the query, based on operand
+     *
+     * @param s
+     * @param operand
+     * @return {@link String}
+     */
+    private String createLikeExpression(String s, FilterOperand operand) {
         return switch (operand) {
             case LIKE, LIKE_CI, NOT_LIKE, NOT_LIKE_CI -> "%" + s + "%";
             case STARTS_WITH, STARTS_WITH_CI -> s + "%";
@@ -47,29 +60,46 @@ public abstract class FilterModel implements Serializable {
         };
     }
 
+    private Path<?> extractFieldPath(From<?, ?> from, String fieldName) {
+        String[] parts = fieldName.split("\\.");
+        From<?, ?> current = from;
+        for (int i = 0; i < parts.length - 1; i++) {
+            current = current.join(parts[i], JoinType.INNER);
+        }
+        return current.get(parts[parts.length - 1]);
+    }
+
+    /**
+     * extract respective {@link Specification} from {@link FilterModel} object
+     *
+     * @param <E> type of {@link BaseEntity}
+     * @return {@link Specification<E>}
+     */
     @SuppressWarnings("unchecked")
-    public <E> Specification<E> toSpecification() {
+    public <E extends BaseEntity> Specification<E> toSpecification() {
         return Specification.where(
                 (from, criteriaBuilder) -> {
                     List<Predicate> predicates = new ArrayList<>();
-                    searchFields().forEach(field -> {
+                    findAllFilterFields().forEach(field -> {
                         FilterField filterField = field.getAnnotation(FilterField.class);
-                        if (!filterField.relation().isEmpty()) {
-                        }
                         Object value = ReflectionUtils.fieldValue(this, field);
                         if (value == null) {
                             return;
                         }
+                        Path<?> fieldPath = from.get(field.getName());
+                        if (filterField.value().contains(".")) {
+                            fieldPath = extractFieldPath(from, filterField.value());
+                        }
                         FilterOperand operand = filterField.operand();
                         Predicate predicate = switch (operand) {
-                            case EQ -> criteriaBuilder.equal(from.get(field.getName()), value);
-                            case NOT_EQ -> criteriaBuilder.notEqual(from.get(field.getName()), value);
+                            case EQ -> criteriaBuilder.equal(fieldPath, value);
+                            case NOT_EQ -> criteriaBuilder.notEqual(fieldPath, value);
                             case EQ_CI,
                                  NOT_EQ_CI -> {
                                 if (value instanceof String string) {
                                     yield operand == FilterOperand.EQ_CI ?
-                                            criteriaBuilder.equal(criteriaBuilder.lower(from.get(field.getName())), string.toLowerCase()) :
-                                            criteriaBuilder.notEqual(criteriaBuilder.lower(from.get(field.getName())), string.toLowerCase());
+                                            criteriaBuilder.equal(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase()) :
+                                            criteriaBuilder.notEqual(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase());
                                 }
                                 throw new RuntimeException("Operands 'EQ_CI' and 'NOT_EQ_CI' are only applicable to String values");
                             }
@@ -79,12 +109,12 @@ public abstract class FilterModel implements Serializable {
                                  LE -> {
                                 if (value instanceof Comparable comparable) {
                                     yield switch (operand) {
-                                        case GT -> criteriaBuilder.greaterThan(from.get(field.getName()), comparable);
+                                        case GT -> criteriaBuilder.greaterThan((Expression) fieldPath, comparable);
                                         case GE ->
-                                                criteriaBuilder.greaterThanOrEqualTo(from.get(field.getName()), comparable);
-                                        case LT -> criteriaBuilder.lessThan(from.get(field.getName()), comparable);
+                                                criteriaBuilder.greaterThanOrEqualTo((Expression) fieldPath, comparable);
+                                        case LT -> criteriaBuilder.lessThan((Expression) fieldPath, comparable);
                                         case LE ->
-                                                criteriaBuilder.lessThanOrEqualTo(from.get(field.getName()), comparable);
+                                                criteriaBuilder.lessThanOrEqualTo((Expression) fieldPath, comparable);
                                         default ->
                                                 throw new RuntimeException("Invalid  operand type " + filterField.operand());
                                     };
@@ -93,9 +123,9 @@ public abstract class FilterModel implements Serializable {
                             }
                             case IN -> {
                                 if (value instanceof Collection<?> collection) {
-                                    yield from.get(field.getName()).in(collection);
+                                    yield fieldPath.in(collection);
                                 } else if (value.getClass().isArray()) {
-                                    yield from.get(field.getName()).in(value);
+                                    yield fieldPath.in(value);
                                 }
                                 throw new RuntimeException("Operand 'BETWEEN' is only applicable to Collection and Array values");
                             }
@@ -133,16 +163,16 @@ public abstract class FilterModel implements Serializable {
                                     );
                                 }
                                 @SuppressWarnings("unchecked")
-                                Comparable<Object> lowerBound = (Comparable<Object>) lower;
+                                Comparable lowerBound = (Comparable<Object>) lower;
                                 @SuppressWarnings("unchecked")
-                                Comparable<Object> upperBound = (Comparable<Object>) upper;
+                                Comparable upperBound = (Comparable<Object>) upper;
                                 yield criteriaBuilder.and(
-                                        criteriaBuilder.greaterThanOrEqualTo(
-                                                from.get(field.getName()),
+                                        criteriaBuilder.lessThanOrEqualTo(
+                                                (Expression) fieldPath,
                                                 lowerBound
                                         ),
                                         criteriaBuilder.lessThan(
-                                                from.get(field.getName()),
+                                                (Expression) fieldPath,
                                                 upperBound
                                         )
                                 );
@@ -156,15 +186,18 @@ public abstract class FilterModel implements Serializable {
                                  STARTS_WITH_CI,
                                  ENDS_WITH_CI -> {
                                 if (value instanceof String string) {
-                                    String likeValue = likeValue(string, operand);
+                                    String likeValue = createLikeExpression(string, operand);
                                     yield switch (operand) {
-                                        case LIKE, STARTS_WITH, ENDS_WITH ->
-                                                criteriaBuilder.like(from.get(field.getName()), likeValue);
-                                        case LIKE_CI, STARTS_WITH_CI, ENDS_WITH_CI ->
-                                                criteriaBuilder.like(criteriaBuilder.lower(from.get(field.getName())), likeValue.toLowerCase());
-                                        case NOT_LIKE -> criteriaBuilder.notLike(from.get(field.getName()), likeValue);
-                                        case NOT_LIKE_CI ->
-                                                criteriaBuilder.notLike(criteriaBuilder.lower(from.get(field.getName())), likeValue.toLowerCase());
+                                        case LIKE, STARTS_WITH, ENDS_WITH -> criteriaBuilder.like(
+                                                fieldPath.as(String.class),
+                                                likeValue);
+                                        case LIKE_CI, STARTS_WITH_CI, ENDS_WITH_CI -> criteriaBuilder.like(
+                                                criteriaBuilder.lower(fieldPath.as(String.class)),
+                                                likeValue.toLowerCase());
+                                        case NOT_LIKE -> criteriaBuilder.notLike(fieldPath.as(String.class), likeValue);
+                                        case NOT_LIKE_CI -> criteriaBuilder.notLike(
+                                                criteriaBuilder.lower(fieldPath.as(String.class)),
+                                                likeValue.toLowerCase());
                                         default -> throw new RuntimeException("Invalid  operand type " + operand);
                                     };
                                 }
