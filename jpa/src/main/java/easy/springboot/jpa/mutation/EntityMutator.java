@@ -15,28 +15,33 @@ import java.util.stream.Collectors;
 public class EntityMutator {
 
     @Transactional
-    public Map<String, Object> mutate(Object entity) {
+    @SuppressWarnings("unckecked")
+    public <E extends BaseEntity> Map<String, Object> mutate(E entity, Class<? extends BaseEntity> skipClazz) {
         Map<String, Object> map = new HashMap<>();
         ReflectionUtils.allAnnotatedFields(entity.getClass(), QueryResultField.class).forEach(field -> {
             QueryResultField annotation = field.getAnnotation(QueryResultField.class);
-            Object value;
+            Object value = null;
             if (Collection.class.isAssignableFrom(field.getType()) &&
-                    field.getGenericType() instanceof ParameterizedType elementType &&
-                    Arrays.stream(elementType.getActualTypeArguments()).noneMatch(type -> type != entity.getClass())) {
-                value = ((Collection) ReflectionUtils.invokeGetter(entity, field.getName()))
-                        .stream()
-                        .map(this::mutate)
-                        .collect(Collectors.toList());
+                    field.getGenericType() instanceof ParameterizedType elementType) {
+                if (Arrays.stream(elementType.getActualTypeArguments())
+                        .noneMatch(type -> type == entity.getClass() || type == skipClazz)) {
+                    value = ((Collection<E>) ReflectionUtils.invokeGetter(entity, field.getName()))
+                            .stream()
+                            .map(item -> mutate(item, entity.getClass()))
+                            .collect(Collectors.toList());
+                }
             } else {
                 if (BaseEntity.class.isAssignableFrom(field.getType()) &&
                         field.getType() != entity.getClass()) {
-                    Object nestedEntity = ReflectionUtils.invokeGetter(entity, field.getName());
-                    value = mutate(nestedEntity);
+                    E nestedEntity = (E) ReflectionUtils.invokeGetter(entity, field.getName());
+                    value = mutate(nestedEntity, entity.getClass());
                 } else {
                     value = ReflectionUtils.fieldValue(entity, field);
                 }
             }
-            map.put(annotation.name().isEmpty() ? field.getName() : annotation.name(), value);
+            if (value != null) {
+                map.put(annotation.name().isEmpty() ? field.getName() : annotation.name(), value);
+            }
         });
         return map;
     }

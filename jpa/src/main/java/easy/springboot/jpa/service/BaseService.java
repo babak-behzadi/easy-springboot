@@ -89,10 +89,10 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     }
 
     public Map<String, Object> mutate(E e) {
-        return getMutator().mutate(e);
+        return getMutator().mutate(e, null);
     }
 
     public QueryResult<Map<String, Object>> mutate(QueryResult<E> queryResult) {
-        return queryResult.mutate(getMutator()::mutate);
+        return queryResult.mutate(e -> getMutator().mutate(e, null));
     }
 }
