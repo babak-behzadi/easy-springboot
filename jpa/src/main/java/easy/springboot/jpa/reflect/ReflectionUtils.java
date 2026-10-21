@@ -1,7 +1,5 @@
 package easy.springboot.jpa.reflect;
 
-import org.springframework.validation.ObjectError;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -62,18 +60,18 @@ public class ReflectionUtils {
     public static Object invokeGetter(Object target, String fieldName) {
         Method method = allMethods(target.getClass(), new ArrayList<>())
                 .stream()
-                .filter(m -> m.getName().toLowerCase().equals("get" + fieldName))
+                .filter(m ->
+                        m.getName().equals("get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)) ||
+                                m.getName().equals("is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)))
                 .findFirst()
                 .orElseThrow(() ->
                         new RuntimeException("Getter method for [" + fieldName + "] " +
                                 "not found in class [" + target.getClass().getName() + "]"));
-        if (method.getReturnType() != Void.class) {
+        if (method.getReturnType() != void.class) {
             try {
                 method.setAccessible(true);
                 return method.invoke(target);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             } finally {
                 method.setAccessible(false);

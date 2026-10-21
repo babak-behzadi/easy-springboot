@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class FilterModel implements Serializable {
 
@@ -54,11 +55,11 @@ public abstract class FilterModel implements Serializable {
     private String createLikeExpression(String s, FilterOperand operand) {
         return switch (operand) {
             case LIKE, NOT_LIKE -> "%" + s + "%";
-            case LIKE_CI, NOT_LIKE_CI -> "%" + s.toLowerCase() + "%";
+            case LIKE_CI, NOT_LIKE_CI -> "%" + s.toLowerCase(Locale.ROOT) + "%";
             case STARTS_WITH -> s + "%";
-            case STARTS_WITH_CI -> s.toLowerCase() + "%";
+            case STARTS_WITH_CI -> s.toLowerCase(Locale.ROOT) + "%";
             case ENDS_WITH -> "%" + s;
-            case ENDS_WITH_CI -> "%" + s.toLowerCase();
+            case ENDS_WITH_CI -> "%" + s.toLowerCase(Locale.ROOT);
             default -> throw new RuntimeException("Invalid operand type " + operand);
         };
     }
@@ -100,7 +101,7 @@ public abstract class FilterModel implements Serializable {
                         if (filterField.value().contains(".")) {
                             fieldPath = extractJoinFieldPath(from, filterField.value());
                         } else {
-                            fieldPath = from.get(field.getName());
+                            fieldPath = from.get(filterField.value());
                         }
                         FilterOperand operand = filterField.operand();
                         Predicate predicate = switch (operand) {
@@ -110,8 +111,8 @@ public abstract class FilterModel implements Serializable {
                                  NOT_EQ_CI -> {
                                 if (value instanceof String string) {
                                     yield operand == FilterOperand.EQ_CI ?
-                                            criteriaBuilder.equal(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase()) :
-                                            criteriaBuilder.notEqual(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase());
+                                            criteriaBuilder.equal(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase(Locale.ROOT)) :
+                                            criteriaBuilder.notEqual(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase(Locale.ROOT));
                                 }
                                 throw new RuntimeException("Operands 'EQ_CI' and 'NOT_EQ_CI' are only applicable to String values");
                             }
@@ -205,11 +206,11 @@ public abstract class FilterModel implements Serializable {
                                                 likeValue);
                                         case LIKE_CI, STARTS_WITH_CI, ENDS_WITH_CI -> criteriaBuilder.like(
                                                 criteriaBuilder.lower(fieldPath.as(String.class)),
-                                                likeValue.toLowerCase());
+                                                likeValue.toLowerCase(Locale.ROOT));
                                         case NOT_LIKE -> criteriaBuilder.notLike(fieldPath.as(String.class), likeValue);
                                         case NOT_LIKE_CI -> criteriaBuilder.notLike(
                                                 criteriaBuilder.lower(fieldPath.as(String.class)),
-                                                likeValue.toLowerCase());
+                                                likeValue.toLowerCase(Locale.ROOT));
                                         default -> throw new RuntimeException("Invalid  operand type " + operand);
                                     };
                                 }

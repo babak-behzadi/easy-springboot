@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class EntityMutator {
 
     @Transactional
-    @SuppressWarnings("unckecked")
+    @SuppressWarnings("unchecked")
     public <E extends BaseEntity> Map<String, Object> mutate(E entity, Class<? extends BaseEntity> skipClazz) {
         Map<String, Object> map = new HashMap<>();
         ReflectionUtils.allAnnotatedFields(entity.getClass(), QueryResultField.class).forEach(field -> {

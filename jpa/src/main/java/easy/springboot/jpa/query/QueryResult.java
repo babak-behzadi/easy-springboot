@@ -29,12 +29,11 @@ public class QueryResult<R> {
         return rows;
     }
 
-    @SuppressWarnings("unchecked")
-    public QueryResult(Page<?> page, long total) {
+    public QueryResult(Page<R> page, long total) {
         this.page = page.getNumber();
         this.pageSize = page.getSize();
         this.total = total;
-        this.rows = (List<R>) page.getContent().stream().toList();
+        this.rows = page.getContent().stream().toList();
     }
 
     public QueryResult(List<R> rows, int page, int pageSize, long total) {
@@ -52,8 +51,8 @@ public class QueryResult<R> {
      * mutate query result list objects
      *
      * @param mutator
-     * @return {@link QueryResult<M>}
      * @param <M>
+     * @return {@link QueryResult<M>}
      */
     public <M> QueryResult<M> mutate(Function<R, M> mutator) {
         return new QueryResult<>(
