@@ -1,10 +1,10 @@
 spring:
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:file:~/easy-springboot-db
+    url: jdbc:h2:file:~/easy-springboot-db;AUTO_SERVER=TRUE
     username: root
     password: root
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true

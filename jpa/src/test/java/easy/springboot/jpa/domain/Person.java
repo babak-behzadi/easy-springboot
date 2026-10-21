@@ -1,5 +1,6 @@
 package easy.springboot.jpa.domain;
 
+import easy.springboot.jpa.query.QueryResultField;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -10,9 +11,13 @@ public class Person extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @QueryResultField
     private Long id;
+    @QueryResultField
     private String firstName;
+    @QueryResultField
     private String lastName;
+    @QueryResultField
     private Date birthDate;
 
     public Long getId() {
