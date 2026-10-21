@@ -33,3 +33,4 @@ build/
 .vscode/
 *mvn*
 .gitattributes
+easy-springboot-db

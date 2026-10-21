@@ -5,7 +5,7 @@ import easy.springboot.jpa.mutation.EntityMutator;
 import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
 import easy.springboot.jpa.repository.BaseRepository;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -16,14 +16,14 @@ import java.util.Optional;
 public abstract class BaseService<E extends BaseEntity, ID, R extends BaseRepository<E, ID>> {
 
     private final R repository;
+    private EntityMutator entityMutator;
 
     protected R getRepository() {
         return repository;
     }
 
-    @Bean
-    protected EntityMutator getMutator() {
-        return new EntityMutator();
+    public void setEntityMutator(EntityMutator entityMutator) {
+        this.entityMutator = entityMutator;
     }
 
     protected BaseService(R repository) {
@@ -90,11 +90,23 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
         repository.delete(entity);
     }
 
-    public Map<String, Object> mutate(E e) {
-        return getMutator().mutate(e, null);
+    /**
+     * changes entity object to a {@link Map<String, Object>} object, regarding fields annotated by {@link easy.springboot.jpa.query.QueryResultField}
+     *
+     * @param entity Entity object
+     * @return {@link Map<String, Object>}
+     */
+    public Map<String, Object> mutate(E entity) {
+        return entityMutator.mutate(entity, null);
     }
 
+    /**
+     * changes all query result rows to {@link Map<String, Object>} object, regarding fields annotated by {@link easy.springboot.jpa.query.QueryResultField}
+     *
+     * @param queryResult
+     * @return {@link QueryResult<Map<String, Object>>}
+     */
     public QueryResult<Map<String, Object>> mutate(QueryResult<E> queryResult) {
-        return queryResult.mutate(e -> getMutator().mutate(e, null));
+        return queryResult.mutate(e -> entityMutator.mutate(e, null));
     }
 }

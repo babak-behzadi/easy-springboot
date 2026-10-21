@@ -4,6 +4,7 @@ import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.query.QueryResultField;
 import easy.springboot.jpa.reflect.ReflectionUtils;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class EntityMutator {
 
     @Transactional
