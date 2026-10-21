@@ -1,21 +1,29 @@
 package easy.springboot.jpa.service;
 
 import easy.springboot.jpa.domain.BaseEntity;
+import easy.springboot.jpa.mutation.EntityMutator;
 import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
 import easy.springboot.jpa.repository.BaseRepository;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public abstract class BaseService<E extends BaseEntity, ID, R extends BaseRepository<E, ID>> {
 
     private final R repository;
 
-    public R getRepository() {
+    protected R getRepository() {
         return repository;
+    }
+
+    @Bean
+    protected EntityMutator getMutator() {
+        return new EntityMutator();
     }
 
     protected BaseService(R repository) {
@@ -27,8 +35,8 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
      * returns {@link QueryResult} object containing result page and total count
      *
      * @param filterModel
-     * @return {@link QueryResult<E>}
      * @param <F>
+     * @return {@link QueryResult<E>}
      */
     public <F extends FilterModel> QueryResult<E> query(F filterModel) {
         Page<E> page = repository.findAll(filterModel.toSpecification(),
@@ -42,8 +50,8 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
      * returns {@link QueryResult} object containing all result and total count
      *
      * @param filterModel
-     * @return {@link QueryResult<E>}
      * @param <F>
+     * @return {@link QueryResult<E>}
      */
     public <F extends FilterModel> QueryResult<E> queryAll(F filterModel) {
         List<E> list = repository.findAll(filterModel.toSpecification());
@@ -78,5 +86,13 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
      */
     public void delete(E entity) {
         repository.delete(entity);
+    }
+
+    public Map<String, Object> mutate(E e) {
+        return getMutator().mutate(e);
+    }
+
+    public QueryResult<Map<String, Object>> mutate(QueryResult<E> queryResult) {
+        return queryResult.mutate(getMutator()::mutate);
     }
 }

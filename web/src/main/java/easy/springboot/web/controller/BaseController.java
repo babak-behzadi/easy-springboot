@@ -3,8 +3,8 @@ package easy.springboot.web.controller;
 import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
+import easy.springboot.jpa.repository.BaseRepository;
 import easy.springboot.jpa.service.BaseService;
-import easy.springboot.web.mutation.EntityMutator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,25 +14,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Map;
 import java.util.Optional;
 
-public class BaseController<S extends BaseService, F extends FilterModel> {
+public abstract class BaseController<E extends BaseEntity, ID, F extends FilterModel> {
 
-    private final S service;
-
-    public BaseController(S service) {
-        this.service = service;
-    }
+    protected abstract <S extends BaseService<E, ID, BaseRepository<E, ID>>> S getService();
 
     @GetMapping(value = "find")
-    public <E extends BaseEntity, ID> ResponseEntity<Map<String, Object>> find(@RequestParam ID id) {
-        Optional<E> optional = service.findById(id);
-        if (optional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(new EntityMutator<E>().apply(optional.get()));
+    public ResponseEntity<Map<String, Object>> find(@RequestParam ID id) {
+        Optional<E> optional = getService().findById(id);
+        return optional.isPresent() ?
+                ResponseEntity.ok(getService().mutate(optional.get())) :
+                ResponseEntity.notFound().build();
     }
 
     @PostMapping(value = "query")
-    public <R> ResponseEntity<QueryResult<R>> query(@RequestBody F filter) {
-        return ResponseEntity.ok(service.query(filter));
+    public ResponseEntity<QueryResult<Map<String, Object>>> query(@RequestBody F filter) {
+        return ResponseEntity.ok(getService().mutate(getService().query(filter)));
     }
 }

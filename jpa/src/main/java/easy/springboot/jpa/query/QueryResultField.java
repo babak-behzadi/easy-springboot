@@ -1,6 +1,4 @@
-package easy.springboot.web.mutation;
-
-import org.springframework.core.serializer.Serializer;
+package easy.springboot.jpa.query;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,6 +10,4 @@ import java.lang.annotation.Target;
 public @interface QueryResultField {
 
     String name() default "";
-
-    Class<?> serializer() default Serializer.class;
 }
