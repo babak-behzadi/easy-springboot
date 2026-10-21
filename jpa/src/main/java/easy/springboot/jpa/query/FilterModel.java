@@ -3,6 +3,7 @@ package easy.springboot.jpa.query;
 import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.reflect.ReflectionUtils;
 import jakarta.persistence.criteria.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serializable;
@@ -16,6 +17,7 @@ public abstract class FilterModel implements Serializable {
 
     private int page;
     private int pageSize;
+    private Sort sort;
 
     public int getPage() {
         return page;
@@ -31,6 +33,14 @@ public abstract class FilterModel implements Serializable {
 
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public Sort getSort() {
+        return sort;
+    }
+
+    public void setSort(Sort sort) {
+        this.sort = sort;
     }
 
     /**
@@ -97,7 +107,7 @@ public abstract class FilterModel implements Serializable {
                         if (value == null) {
                             return;
                         }
-                        Path<?> fieldPath = null;
+                        Path<?> fieldPath;
                         if (filterField.value().contains(".")) {
                             fieldPath = extractJoinFieldPath(from, filterField.value());
                         } else {
