@@ -154,7 +154,7 @@ public abstract class FilterModel implements Serializable {
                                     var iterator = collection.iterator();
                                     lower = iterator.next();
                                     upper = iterator.next();
-                                } else if (value != null && value.getClass().isArray()) {
+                                } else if (value.getClass().isArray()) {
                                     int length = java.lang.reflect.Array.getLength(value);
                                     if (length != 2) {
                                         throw new IllegalArgumentException(
@@ -175,17 +175,15 @@ public abstract class FilterModel implements Serializable {
                                             "Values for 'BETWEEN' must implement Comparable"
                                     );
                                 }
-                                @SuppressWarnings("unchecked")
-                                Comparable lowerBound = (Comparable<Object>) lower;
-                                @SuppressWarnings("unchecked")
-                                Comparable upperBound = (Comparable<Object>) upper;
+                                Comparable<Object> lowerBound = (Comparable<Object>) lower;
+                                Comparable<Object> upperBound = (Comparable<Object>) upper;
                                 yield criteriaBuilder.and(
-                                        criteriaBuilder.lessThanOrEqualTo(
-                                                (Expression) fieldPath,
+                                        criteriaBuilder.greaterThanOrEqualTo(
+                                                (Expression<Comparable<Object>>) fieldPath,
                                                 lowerBound
                                         ),
-                                        criteriaBuilder.lessThan(
-                                                (Expression) fieldPath,
+                                        criteriaBuilder.lessThanOrEqualTo(
+                                                (Expression<Comparable<Object>>) fieldPath,
                                                 upperBound
                                         )
                                 );

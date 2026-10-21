@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 
 @SpringBootTest(classes = TestConfig.class)
@@ -32,6 +33,9 @@ public class PersonServiceTest {
     void search_person() {
         PersonFilterModel filterModel = new PersonFilterModel();
         filterModel.setFirstName("bab");
+        Calendar from = Calendar.getInstance();
+        from.add(Calendar.DATE, -1);
+        filterModel.setBirthDate(List.of(from.getTime(), Calendar.getInstance().getTime()));
         filterModel.setPage(0);
         filterModel.setPageSize(1);
 
