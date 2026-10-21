@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Calendar;
+import java.util.Optional;
 
 @SpringBootTest(classes = TestConfig.class)
 public class PersonServiceTest {
@@ -38,5 +39,12 @@ public class PersonServiceTest {
         Assertions.assertNotNull(queryResult);
         Assertions.assertEquals(1, queryResult.getRows().size());
         Assertions.assertEquals("Babak", queryResult.getRows().get(0).getFirstName());
+    }
+
+    @Test
+    void find_person() {
+        Optional<Person> person = personService.findById(1L);
+        Assertions.assertTrue(person.isPresent());
+        Assertions.assertEquals("Babak", person.get().getFirstName());
     }
 }
