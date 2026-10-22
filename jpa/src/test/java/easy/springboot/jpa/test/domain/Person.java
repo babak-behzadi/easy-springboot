@@ -1,5 +1,6 @@
-package easy.springboot.jpa.domain;
+package easy.springboot.jpa.test.domain;
 
+import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.query.QueryResultField;
 import jakarta.persistence.*;
 

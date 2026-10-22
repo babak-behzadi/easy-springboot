@@ -4,8 +4,8 @@ import easy.springboot.jpa.domain.BaseEntity;
 import easy.springboot.jpa.mutation.EntityMutator;
 import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
+import easy.springboot.jpa.query.QueryResultField;
 import easy.springboot.jpa.repository.BaseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -91,7 +91,7 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     }
 
     /**
-     * changes entity object to a {@link Map<String, Object>} object, regarding fields annotated by {@link easy.springboot.jpa.query.QueryResultField}
+     * changes entity object to a {@link Map<String, Object>} object, regarding fields annotated by {@link QueryResultField}
      *
      * @param entity Entity object
      * @return {@link Map<String, Object>}
@@ -101,7 +101,7 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     }
 
     /**
-     * changes all query result rows to {@link Map<String, Object>} object, regarding fields annotated by {@link easy.springboot.jpa.query.QueryResultField}
+     * changes all query result rows to {@link Map<String, Object>} object, regarding fields annotated by {@link QueryResultField}
      *
      * @param queryResult
      * @return {@link QueryResult<Map<String, Object>>}

@@ -1,10 +1,10 @@
 package easy.springboot.jpa;
 
-import easy.springboot.jpa.domain.Person;
-import easy.springboot.jpa.model.PersonModel;
-import easy.springboot.jpa.query.PersonFilterModel;
+import easy.springboot.jpa.test.domain.Person;
+import easy.springboot.jpa.test.model.PersonModel;
+import easy.springboot.jpa.test.query.PersonFilterModel;
 import easy.springboot.jpa.query.QueryResult;
-import easy.springboot.jpa.service.PersonService;
+import easy.springboot.jpa.test.service.PersonService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

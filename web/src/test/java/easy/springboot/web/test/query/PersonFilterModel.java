@@ -1,4 +1,8 @@
-package easy.springboot.jpa.query;
+package easy.springboot.web.test.query;
+
+import easy.springboot.jpa.query.FilterField;
+import easy.springboot.jpa.query.FilterModel;
+import easy.springboot.jpa.query.FilterOperand;
 
 import java.util.Date;
 import java.util.List;

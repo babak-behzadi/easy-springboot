@@ -1,4 +1,4 @@
-package easy.springboot.jpa.model;
+package easy.springboot.web.test.model;
 
 import java.util.Date;
 

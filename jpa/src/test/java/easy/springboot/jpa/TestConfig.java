@@ -10,6 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableAutoConfiguration
 @ComponentScan(basePackages = "easy.springboot")
 @EnableJpaRepositories(basePackages = "easy.springboot")
-@EntityScan("easy.springboot")
+@EntityScan(basePackages = "easy.springboot")
 public class TestConfig {
 }
