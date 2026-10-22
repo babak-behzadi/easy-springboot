@@ -2,6 +2,8 @@
 
 Reusable building blocks for Spring Boot applications using Spring Data JPA and Spring MVC.
 
+**Author:** Babak Behzadi
+
 The repository currently contains two independent Maven projects:
 
 - **`jpa`** — generic repository and service base classes, annotation-driven dynamic filters, query-result mapping, and reflection utilities.
@@ -82,7 +84,7 @@ The modules include H2 as a test dependency. Their tests use test-specific confi
 - Dynamic filters should only expose fields and operands that your application intends clients to query. Validate and constrain request data.
 - `EntityMutator` is a lightweight field mapper, not a substitute for explicit API DTOs. Review lazy-loaded relationships, null relationships, recursion/cycles, and sensitive-field handling for your domain.
 - The Web base controller provides only basic find and query endpoints. Applications should add validation, authorization, error handling, and API-specific DTOs as needed.
-- A `pom.xml` for a root multi-module Maven build, CI workflow, license, and release/publishing instructions have not yet been added.
+- A root multi-module Maven build, CI workflow, and release/publishing instructions have not yet been added.
 
 ## Contributing
 
@@ -90,4 +92,6 @@ Issues and pull requests are welcome. Please include tests for behavior changes 
 
 ## License
 
-No license has been declared in this repository yet. Until a license is added, do not assume the code is available for unrestricted reuse.
+This project is licensed under the [Apache License, Version 2.0](LICENSE).
+
+Copyright 2026 Babak Behzadi.
