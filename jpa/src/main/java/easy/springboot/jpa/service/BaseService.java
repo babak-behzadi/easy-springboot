@@ -6,6 +6,7 @@ import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
 import easy.springboot.jpa.query.QueryResultField;
 import easy.springboot.jpa.repository.BaseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -22,6 +23,7 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
         return repository;
     }
 
+    @Autowired
     public void setEntityMutator(EntityMutator entityMutator) {
         this.entityMutator = entityMutator;
     }
