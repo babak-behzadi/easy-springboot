@@ -1,12 +1,16 @@
 package easy.springboot.jpa.query;
 
 import easy.springboot.jpa.domain.BaseEntity;
+import easy.springboot.jpa.exception.InvalidBetweenFilterOperandArgs;
+import easy.springboot.jpa.exception.InvalidBetweenFilterOperandValues;
+import easy.springboot.jpa.exception.InvalidFilterOperandType;
 import easy.springboot.jpa.reflect.ReflectionUtils;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,8 +62,8 @@ public abstract class FilterModel implements Serializable {
     /**
      * creates like expression for the query, based on operand
      *
-     * @param s
-     * @param operand
+     * @param s       string value of like expression
+     * @param operand *LIKE* operation
      * @return {@link String}
      */
     private String createLikeExpression(String s, FilterOperand operand) {
@@ -70,15 +74,15 @@ public abstract class FilterModel implements Serializable {
             case STARTS_WITH_CI -> s.toLowerCase(Locale.ROOT) + "%";
             case ENDS_WITH -> "%" + s;
             case ENDS_WITH_CI -> "%" + s.toLowerCase(Locale.ROOT);
-            default -> throw new RuntimeException("Invalid operand type " + operand);
+            default -> throw new InvalidFilterOperandType(operand);
         };
     }
 
     /**
      * extract join field path
      *
-     * @param from
-     * @param fieldName
+     * @param from      relation root
+     * @param fieldName name of the entity field
      * @return {@link Path}
      */
     private Path<?> extractJoinFieldPath(From<?, ?> from, String fieldName) {
@@ -121,10 +125,12 @@ public abstract class FilterModel implements Serializable {
                                  NOT_EQ_CI -> {
                                 if (value instanceof String string) {
                                     yield operand == FilterOperand.EQ_CI ?
-                                            criteriaBuilder.equal(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase(Locale.ROOT)) :
-                                            criteriaBuilder.notEqual(criteriaBuilder.lower(fieldPath.as(String.class)), string.toLowerCase(Locale.ROOT));
+                                            criteriaBuilder.equal(criteriaBuilder.lower(fieldPath.as(String.class)),
+                                                    string.toLowerCase(Locale.ROOT)) :
+                                            criteriaBuilder.notEqual(criteriaBuilder.lower(fieldPath.as(String.class)),
+                                                    string.toLowerCase(Locale.ROOT));
                                 }
-                                throw new RuntimeException("Operands 'EQ_CI' and 'NOT_EQ_CI' are only applicable to String values");
+                                throw new InvalidFilterOperandType(List.of(FilterOperand.EQ_CI, FilterOperand.NOT_EQ_CI), String.class);
                             }
                             case GT,
                                  GE,
@@ -138,11 +144,12 @@ public abstract class FilterModel implements Serializable {
                                         case LT -> criteriaBuilder.lessThan((Expression) fieldPath, comparable);
                                         case LE ->
                                                 criteriaBuilder.lessThanOrEqualTo((Expression) fieldPath, comparable);
-                                        default ->
-                                                throw new RuntimeException("Invalid  operand type " + filterField.operand());
+                                        default -> throw new InvalidFilterOperandType(filterField.operand());
                                     };
                                 }
-                                throw new RuntimeException("Operands 'GT', 'GE', 'LT' and 'LE' are only applicable to Comparable values");
+                                throw new InvalidFilterOperandType(
+                                        List.of(FilterOperand.GT, FilterOperand.GE, FilterOperand.LE, FilterOperand.LT),
+                                        Comparable.class);
                             }
                             case IN -> {
                                 if (value instanceof Collection<?> collection) {
@@ -150,40 +157,34 @@ public abstract class FilterModel implements Serializable {
                                 } else if (value.getClass().isArray()) {
                                     yield fieldPath.in(value);
                                 }
-                                throw new RuntimeException("Operand 'BETWEEN' is only applicable to Collection and Array values");
+                                throw new InvalidFilterOperandType(List.of(FilterOperand.IN),
+                                        List.of(Collection.class, Array.class));
                             }
                             case BETWEEN -> {
                                 Object lower;
                                 Object upper;
                                 if (value instanceof Collection<?> collection) {
                                     if (collection.size() != 2) {
-                                        throw new IllegalArgumentException(
-                                                "Operand 'BETWEEN' requires exactly 2 values"
-                                        );
+                                        throw new InvalidBetweenFilterOperandArgs();
                                     }
                                     var iterator = collection.iterator();
                                     lower = iterator.next();
                                     upper = iterator.next();
                                 } else if (value.getClass().isArray()) {
-                                    int length = java.lang.reflect.Array.getLength(value);
+                                    int length = Array.getLength(value);
                                     if (length != 2) {
-                                        throw new IllegalArgumentException(
-                                                "Operand 'BETWEEN' requires exactly 2 values"
-                                        );
+                                        throw new InvalidBetweenFilterOperandArgs();
                                     }
-                                    lower = java.lang.reflect.Array.get(value, 0);
-                                    upper = java.lang.reflect.Array.get(value, 1);
+                                    lower = Array.get(value, 0);
+                                    upper = Array.get(value, 1);
                                 } else {
-                                    throw new IllegalArgumentException(
-                                            "Operand 'BETWEEN' is only applicable to Collection and Array values"
-                                    );
+                                    throw new InvalidFilterOperandType(List.of(FilterOperand.BETWEEN),
+                                            List.of(Collection.class, Array.class));
                                 }
 
                                 if (!(lower instanceof Comparable<?>)
                                         || !(upper instanceof Comparable<?>)) {
-                                    throw new IllegalArgumentException(
-                                            "Values for 'BETWEEN' must implement Comparable"
-                                    );
+                                    throw new InvalidBetweenFilterOperandValues();
                                 }
                                 Comparable<Object> lowerBound = (Comparable<Object>) lower;
                                 Comparable<Object> upperBound = (Comparable<Object>) upper;
@@ -219,10 +220,20 @@ public abstract class FilterModel implements Serializable {
                                         case NOT_LIKE_CI -> criteriaBuilder.notLike(
                                                 criteriaBuilder.lower(fieldPath.as(String.class)),
                                                 likeValue.toLowerCase(Locale.ROOT));
-                                        default -> throw new RuntimeException("Invalid  operand type " + operand);
+                                        default -> throw new InvalidFilterOperandType(operand);
                                     };
                                 }
-                                throw new RuntimeException("Operands 'LIKE', 'LIKE_CI', 'NOT_LIKE', 'NOT_LIKE_CI', STARTS_WITH, ENDS_WITH, STARTS_WITH_CI and ENDS_WITH_CI are only applicable to String values");
+                                throw new InvalidFilterOperandType(
+                                        List.of(FilterOperand.LIKE,
+                                                FilterOperand.LIKE_CI,
+                                                FilterOperand.NOT_LIKE,
+                                                FilterOperand.NOT_LIKE_CI,
+                                                FilterOperand.STARTS_WITH,
+                                                FilterOperand.ENDS_WITH,
+                                                FilterOperand.STARTS_WITH_CI,
+                                                FilterOperand.ENDS_WITH_CI),
+                                        String.class
+                                );
                             }
                         };
                         predicates.add(predicate);

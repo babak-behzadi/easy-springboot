@@ -36,8 +36,8 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
      * queries database based on filterModel
      * returns {@link QueryResult} object containing result page and total count
      *
-     * @param filterModel
-     * @param <F>
+     * @param filterModel filter model object
+     * @param <F> the class extends filter model
      * @return {@link QueryResult<E>}
      */
     public <F extends FilterModel> QueryResult<E> query(F filterModel) {
@@ -53,8 +53,8 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
      * queries database based on filterModel
      * returns {@link QueryResult} object containing all result and total count
      *
-     * @param filterModel
-     * @param <F>
+     * @param filterModel filter model object
+     * @param <F> the class extends filter model
      * @return {@link QueryResult<E>}
      */
     public <F extends FilterModel> QueryResult<E> queryAll(F filterModel) {
@@ -66,7 +66,7 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     /**
      * finds entity object by id
      *
-     * @param id
+     * @param id id
      * @return {@link Optional<E>}
      */
     public Optional<E> findById(ID id) {
@@ -76,7 +76,7 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     /**
      * saves entity object
      *
-     * @param entity
+     * @param entity entity object to be saved
      * @return <E>
      */
     public E save(E entity) {
@@ -86,17 +86,17 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     /**
      * deletes entity object
      *
-     * @param entity
+     * @param entity enty object to be deleted
      */
     public void delete(E entity) {
         repository.delete(entity);
     }
 
     /**
-     * changes entity object to a {@link Map<String, Object>} object, regarding fields annotated by {@link QueryResultField}
+     * changes entity object to a {@link Map} object, regarding fields annotated by {@link QueryResultField}
      *
      * @param entity Entity object
-     * @return {@link Map<String, Object>}
+     * @return {@link Map}
      */
     public Map<String, Object> mutate(E entity) {
         return entityMutator.mutate(entity, null);
@@ -105,8 +105,8 @@ public abstract class BaseService<E extends BaseEntity, ID, R extends BaseReposi
     /**
      * changes all query result rows to {@link Map<String, Object>} object, regarding fields annotated by {@link QueryResultField}
      *
-     * @param queryResult
-     * @return {@link QueryResult<Map<String, Object>>}
+     * @param queryResult query result object to mutate
+     * @return {@link QueryResult<Map>}
      */
     public QueryResult<Map<String, Object>> mutate(QueryResult<E> queryResult) {
         return queryResult.mutate(e -> entityMutator.mutate(e, null));

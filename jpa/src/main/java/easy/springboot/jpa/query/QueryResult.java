@@ -50,8 +50,8 @@ public class QueryResult<R> {
     /**
      * mutate query result list objects
      *
-     * @param mutator
-     * @param <M>
+     * @param mutator mutation function
+     * @param <M>     input and output class
      * @return {@link QueryResult<M>}
      */
     public <M> QueryResult<M> mutate(Function<R, M> mutator) {

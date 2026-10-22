@@ -10,6 +10,13 @@ import java.util.List;
 
 public class ReflectionUtils {
 
+    /**
+     * returns all fields of class containing inherited fields back to {@link Object}
+     *
+     * @param clazz  class name
+     * @param fields initial list of {@link Field}
+     * @return {@link List<Field>}
+     */
     public static List<Field> allFields(Class<?> clazz, List<Field> fields) {
         if (clazz == Object.class) {
             return fields;
@@ -18,6 +25,13 @@ public class ReflectionUtils {
         return allFields(clazz.getSuperclass(), fields);
     }
 
+    /**
+     * returns all fields of class, annotated by input annotation, containing inherited fields back to {@link Object}
+     *
+     * @param clazz      class name
+     * @param annotation input annotation
+     * @return {@link List<Field>}
+     */
     public static List<Field> allAnnotatedFields(Class<?> clazz, Class<? extends Annotation> annotation) {
         return ReflectionUtils.allFields(clazz, new ArrayList<>())
                 .stream()
@@ -25,14 +39,28 @@ public class ReflectionUtils {
                 .toList();
     }
 
+    /**
+     * finds a field by name
+     *
+     * @param clazz     class name
+     * @param fieldName name of the field
+     * @return {@link Field}
+     */
     public static Field findField(Class<?> clazz, String fieldName) {
         return ReflectionUtils.allFields(clazz, new ArrayList<>())
                 .stream()
                 .filter(field1 -> field1.getName().equals(fieldName))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Field [" + fieldName + "] not found in class [" + clazz.getName() + "]"));
+                .orElseThrow(() -> new FieldNotFoundException(fieldName, clazz));
     }
 
+    /**
+     * gets the value of the given field by field object
+     *
+     * @param target object
+     * @param field  field
+     * @return {@link Object}
+     */
     public static Object fieldValue(Object target, Field field) {
         field.setAccessible(true);
         try {
@@ -44,11 +72,25 @@ public class ReflectionUtils {
         }
     }
 
+    /**
+     * gets the value of the given field by field name
+     *
+     * @param target    object
+     * @param fieldName field name
+     * @return {@link Object}
+     */
     public static Object fieldValue(Object target, String fieldName) {
         Field field = findField(target.getClass(), fieldName);
         return ReflectionUtils.fieldValue(target, field);
     }
 
+    /**
+     * returns all fields of class containing inherited fields back to {@link Object}
+     *
+     * @param clazz   class
+     * @param methods initial list of {@link Method}
+     * @return {@link List<Method>}
+     */
     public static List<Method> allMethods(Class<?> clazz, List<Method> methods) {
         if (clazz == Object.class) {
             return methods;
@@ -57,6 +99,13 @@ public class ReflectionUtils {
         return allMethods(clazz.getSuperclass(), methods);
     }
 
+    /**
+     * invokes getter metho of the given field
+     *
+     * @param target    object
+     * @param fieldName field name
+     * @return {@link Object}
+     */
     public static Object invokeGetter(Object target, String fieldName) {
         Method method = allMethods(target.getClass(), new ArrayList<>())
                 .stream()
@@ -64,9 +113,7 @@ public class ReflectionUtils {
                         m.getName().equals("get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)) ||
                                 m.getName().equals("is" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1)))
                 .findFirst()
-                .orElseThrow(() ->
-                        new RuntimeException("Getter method for [" + fieldName + "] " +
-                                "not found in class [" + target.getClass().getName() + "]"));
+                .orElseThrow(() -> new GetterMethodNotFoundException(fieldName, target.getClass()));
         if (method.getReturnType() != void.class) {
             try {
                 method.setAccessible(true);
@@ -77,6 +124,6 @@ public class ReflectionUtils {
                 method.setAccessible(false);
             }
         }
-        throw new RuntimeException("Getter method for [" + fieldName + "] has no return type.");
+        throw new GetterMethodHasNoValueException(fieldName);
     }
 }

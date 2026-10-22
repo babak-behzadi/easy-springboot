@@ -18,6 +18,12 @@ public abstract class BaseController<E extends BaseEntity, ID, F extends FilterM
 
     protected abstract <S extends BaseService<E, ID, BaseRepository<E, ID>>> S getService();
 
+    /**
+     * returns mapped fetch result to client
+     *
+     * @param id id to be looked up
+     * @return {@link ResponseEntity<Map>}
+     */
     @GetMapping(value = "find")
     public ResponseEntity<Map<String, Object>> find(@RequestParam ID id) {
         Optional<E> optional = getService().findById(id);
@@ -26,6 +32,12 @@ public abstract class BaseController<E extends BaseEntity, ID, F extends FilterM
                 ResponseEntity.notFound().build();
     }
 
+    /**
+     * search
+     *
+     * @param filter filter mode object
+     * @return {@link ResponseEntity<QueryResult>}
+     */
     @PostMapping(value = "query")
     public ResponseEntity<QueryResult<Map<String, Object>>> query(@RequestBody F filter) {
         return ResponseEntity.ok(getService().mutate(getService().query(filter)));
