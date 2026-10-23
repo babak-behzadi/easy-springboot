@@ -1,24 +1,54 @@
 # Easy Spring Boot — Web module
 
-The `web` module provides `BaseController<E, ID, F>`, an abstract Spring MVC controller that reuses the JPA module's service and result-mapping functionality.
+The `web` module provides `BaseController<E, ID, F>`, an abstract Spring MVC controller that reuses the JPA module's service and result-mapping functionality and the Security module's method-authorization helper.
 
 ## Requirements
 
 - JDK 17 or later.
 - Maven.
-- The `easy.springboot:jpa:1.0.0` artifact from this repository.
-- A Spring Boot application configured with Spring MVC and a database appropriate to the application.
+- The `easy.springboot:jpa:1.0.0` and `easy.springboot:security:1.0.0` artifacts from this repository.
+- A Spring Boot application configured with Spring MVC, Spring Security authentication, method security, and a database appropriate to the application.
 
 ## Build
 
-The Web module depends on the JPA module as a Maven artifact. From the repository root, install JPA first and then build Web:
+The Web module depends on both JPA and Security as Maven artifacts. From the repository root, install both first and then build Web:
 
 ```bash
 mvn -f jpa/pom.xml clean install
+mvn -f security/pom.xml clean install
 mvn -f web/pom.xml clean verify
 ```
 
-The current repository has independent module POMs rather than a root aggregator POM. The Web build expects the matching JPA artifact to be available in your local Maven repository.
+The repository has independent module POMs rather than a root aggregator POM. The Web build expects the matching JPA and Security artifacts to be available in your local Maven repository.
+
+## Security setup
+
+The inherited `find` and `query` endpoints use `@PreAuthorize("@authorityRestrictionService.hasAccess(#root.this)")`. Enable method security in your consuming application and annotate each concrete controller with `@AuthorityRestriction`:
+
+```java
+import easy.springboot.security.restriction.AuthorityRestriction;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+@Configuration
+@EnableMethodSecurity
+class MethodSecurityConfig {
+}
+```
+
+```java
+@RestController
+@RequestMapping("person")
+@AuthorityRestriction({"ROLE_USER"})
+public class PersonController
+        extends BaseController<Person, Long, PersonFilter> {
+    // Inject and return the application's PersonService.
+}
+```
+
+Use the exact authority names granted by your authentication setup. Multiple values in `@AuthorityRestriction` use OR semantics: any one matching authority is sufficient. An empty restriction allows any authenticated, non-anonymous user; prefer explicit authorities for protected endpoints.
+
+This library does not configure your authentication provider, users, login, CSRF policy, or HTTP security filter chain. You must configure those according to your application and test that authorization behaves as intended.
 
 ## Provided endpoints
 
@@ -34,12 +64,14 @@ For example, if the concrete controller uses `@RequestMapping("person")`, the ro
 ## Example: extend the base controller
 
 ```java
+import easy.springboot.security.restriction.AuthorityRestriction;
 import easy.springboot.web.controller.BaseController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("person")
+@AuthorityRestriction({"ROLE_USER"})
 public class PersonController
         extends BaseController<Person, Long, PersonFilter> {
 
@@ -80,12 +112,11 @@ The response contains `page`, `pageSize`, `total`, and `rows`. Exact JSON date f
 ## Recommendations for consuming applications
 
 - Add Bean Validation to request models and validate page/filter inputs.
-- Apply authentication and authorization to endpoints as required by your application.
 - Use explicit request and response DTOs for stable public APIs.
 - Add consistent exception handling with `@ControllerAdvice`.
 - Avoid exposing sensitive entity fields; carefully review `@QueryResultField` and the JPA module's protected-column configuration.
-- Test endpoints with MockMvc, including not-found cases, invalid requests, and empty query results.
+- Test authorization with MockMvc, including anonymous users, authenticated users with and without required authorities, not-found cases, invalid requests, and empty query results.
 
 ## Current limitations
 
-The base controller intentionally provides only basic find and query endpoints. It does not provide save/update/delete HTTP endpoints, authorization rules, request validation, or a standardized error-response schema. Those concerns belong in the concrete application or in a future extension of this module.
+The base controller intentionally provides only basic find and query endpoints. It does not provide save/update/delete HTTP endpoints, application-specific request validation, or a standardized error-response schema. Authorization depends on correct Spring method-security and application security configuration.
