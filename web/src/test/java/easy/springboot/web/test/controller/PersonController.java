@@ -1,5 +1,6 @@
 package easy.springboot.web.test.controller;
 
+import easy.springboot.security.restriction.AuthorityRestriction;
 import easy.springboot.web.controller.BaseController;
 import easy.springboot.web.test.domain.Person;
 import easy.springboot.web.test.model.PersonModel;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("person")
+@AuthorityRestriction({"USER"})
 public class PersonController extends BaseController<Person, Long, PersonFilterModel> {
 
     private final PersonService service;

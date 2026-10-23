@@ -2,18 +2,23 @@ package easy.springboot.web;
 
 import easy.springboot.web.test.model.PersonModel;
 import easy.springboot.web.test.query.PersonFilterModel;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Calendar;
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,8 +29,17 @@ public class PersonControllerTest {
 
     ObjectMapper mapper = new ObjectMapper();
 
-    @Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    WebApplicationContext context;
+
+    @BeforeEach
+    void set_context() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+    }
 
     @Test
     void person_save() throws Exception {
@@ -44,6 +58,7 @@ public class PersonControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "testuser", authorities = {"USER"})
     void person_find() throws Exception {
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/person/find")
@@ -56,6 +71,7 @@ public class PersonControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "testuser", authorities = {"USER"})
     void search_person() throws Exception {
         PersonFilterModel filterModel = new PersonFilterModel();
         filterModel.setFirstName("bab");
@@ -69,7 +85,8 @@ public class PersonControllerTest {
                         MockMvcRequestBuilders.post("/person/query")
                                 .content(mapper.writeValueAsString(filterModel))
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                ).andExpect(status().isOk())
+                )
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page").value(filterModel.getPage()))
                 .andExpect(jsonPath("$.pageSize").value(filterModel.getPageSize()))
                 .andExpect(jsonPath("$.rows").isArray())

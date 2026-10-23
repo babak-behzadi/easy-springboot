@@ -45,6 +45,11 @@
             <artifactId>jpa</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>easy.springboot</groupId>
+            <artifactId>security</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -55,6 +60,11 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
