@@ -23,7 +23,7 @@ The repository has independent module POMs rather than a root aggregator POM. Th
 
 ## Security setup
 
-The inherited `find` and `query` endpoints use `@PreAuthorize("@authorityRestrictionService.hasAccess(this)")`. Enable method security in your consuming application and annotate each concrete controller with `@AuthorityRestriction`:
+The inherited `find` and `query` endpoints use `@PreAuthorize("@authorityRestrictionService.hasAccess(#root.this)")`. Enable method security in your consuming application and annotate each concrete controller with `@AuthorityRestriction`:
 
 ```java
 import easy.springboot.security.restriction.AuthorityRestriction;
