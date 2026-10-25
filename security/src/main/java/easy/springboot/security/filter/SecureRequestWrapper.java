@@ -7,7 +7,9 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.NonNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -43,15 +45,15 @@ public class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     public static class BaseCachedInputStream extends ServletInputStream {
 
-        private final byte[] requestBodyBytes;
+        private final ByteArrayInputStream input;
 
         public BaseCachedInputStream(byte[] requestBodyBytes) {
-            this.requestBodyBytes = requestBodyBytes;
+            this.input = new ByteArrayInputStream(requestBodyBytes);
         }
 
         @Override
         public boolean isFinished() {
-            return true;
+            return input.available() == 0;
         }
 
         @Override
@@ -61,16 +63,17 @@ public class SecureRequestWrapper extends HttpServletRequestWrapper {
 
         @Override
         public void setReadListener(ReadListener readListener) {
+            // This implementation supports synchronous reads only.
         }
 
         @Override
         public int read() throws IOException {
-            return this.requestBodyBytes.length;
+            return input.read();
         }
 
         @Override
-        public byte[] readAllBytes() throws IOException {
-            return this.requestBodyBytes;
+        public int read(byte @NonNull [] bytes, int offset, int length) throws IOException {
+            return input.read(bytes, offset, length);
         }
     }
 }
