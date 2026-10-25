@@ -8,3 +8,22 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  easy:
+    security:
+      csrf:
+        enabled: false
+      cors:
+        enabled: true
+        origins: /**
+        methods:
+          - POST
+          - GET
+      filter:
+        excluded-urls: /**
+      multipart:
+        valid-file-extensions:
+          - jpeg
+          - jpg
+          - bmp
+          - tiff
+          - png
