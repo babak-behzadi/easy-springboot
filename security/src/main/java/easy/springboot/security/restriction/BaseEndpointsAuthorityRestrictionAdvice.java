@@ -34,7 +34,7 @@ import java.util.Optional;
 /**
  * Evaluates the current authentication against a target class's authority restriction.
  */
-@Component("authorityRestrictionService")
+@Component
 @Aspect
 public class BaseEndpointsAuthorityRestrictionAdvice {
 
