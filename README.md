@@ -48,7 +48,7 @@ Applications extend the base controller and supply their own entity, filter mode
 - A database and JDBC driver configured by the consuming application for runtime use.
 - Authentication and authorization configuration in consuming applications that use the Security or Web modules.
 
-The POMs currently use Spring Boot `4.1.1`. Check each module POM if you need to align versions with your application.
+The POMs currently use Spring Boot `4.1.2`. Check each module POM if you need to align versions with your application.
 
 ## Build
 

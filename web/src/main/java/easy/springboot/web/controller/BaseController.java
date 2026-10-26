@@ -21,8 +21,8 @@ import easy.springboot.jpa.query.FilterModel;
 import easy.springboot.jpa.query.QueryResult;
 import easy.springboot.jpa.repository.BaseRepository;
 import easy.springboot.jpa.service.BaseService;
+import easy.springboot.security.restriction.PreAuthorizeBaseEndpoint;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,7 +46,7 @@ public abstract class BaseController<E extends BaseEntity, ID, F extends FilterM
      * @return mapped entity response
      */
     @GetMapping(value = "find")
-    @PreAuthorize("@authorityRestrictionService.hasAccess(this)")
+    @PreAuthorizeBaseEndpoint
     public ResponseEntity<Map<String, Object>> find(@RequestParam ID id) {
         Optional<E> optional = getService().findById(id);
         return optional.isPresent() ?
@@ -61,7 +61,7 @@ public abstract class BaseController<E extends BaseEntity, ID, F extends FilterM
      * @return mapped query result
      */
     @PostMapping(value = "query")
-    @PreAuthorize("@authorityRestrictionService.hasAccess(this)")
+    @PreAuthorizeBaseEndpoint
     public ResponseEntity<QueryResult<Map<String, Object>>> query(@RequestBody F filter) {
         return ResponseEntity.ok(getService().mutate(getService().query(filter)));
     }

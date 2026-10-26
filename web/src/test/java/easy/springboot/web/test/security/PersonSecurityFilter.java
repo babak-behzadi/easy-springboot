@@ -4,8 +4,6 @@ import easy.springboot.security.config.BaseSecurityConfigurationSpec;
 import easy.springboot.security.filter.BaseSecurityFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;

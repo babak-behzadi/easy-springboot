@@ -6,7 +6,7 @@ The `security` module provides a small Spring Security helper for restricting ac
 
 - JDK 17 or later.
 - Maven.
-- Spring Boot `4.1.1`, as declared in this module's POM.
+- Spring Boot `4.1.2`, as declared in this module's POM.
 - A consuming Spring application configured with Spring Security authentication and authorization.
 
 ## Build and test
@@ -45,14 +45,15 @@ public class MethodSecurityConfig {
 Then annotate a concrete controller with the required authority or authorities:
 
 ```java
-import easy.springboot.security.restriction.AuthorityRestriction;
+import easy.springboot.security.restriction.PreAuthorizeBaseEndpoint;
+import easy.springboot.security.restriction.PreAuthorizeBaseEndpoints;
 import easy.springboot.web.controller.BaseController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("person")
-@AuthorityRestriction({"ROLE_USER"})
+@PreAuthorizeBaseEndpoint({"ROLE_USER"})
 public class PersonController
         extends BaseController<Person, Long, PersonFilter> {
     // Provide the application's PersonService as required by BaseController.

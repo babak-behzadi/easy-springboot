@@ -26,7 +26,7 @@ The repository has independent module POMs rather than a root aggregator POM. Th
 The inherited `find` and `query` endpoints use `@PreAuthorize("@authorityRestrictionService.hasAccess(#root.this)")`. Enable method security in your consuming application and annotate each concrete controller with `@AuthorityRestriction`:
 
 ```java
-import easy.springboot.security.restriction.AuthorityRestriction;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
@@ -64,14 +64,14 @@ For example, if the concrete controller uses `@RequestMapping("person")`, the ro
 ## Example: extend the base controller
 
 ```java
-import easy.springboot.security.restriction.AuthorityRestriction;
+import easy.springboot.security.restriction.PreAuthorizeBaseEndpoint;
 import easy.springboot.web.controller.BaseController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("person")
-@AuthorityRestriction({"ROLE_USER"})
+@PreAuthorizeBaseEndpoint({"ROLE_USER"})
 public class PersonController
         extends BaseController<Person, Long, PersonFilter> {
 

@@ -2,8 +2,6 @@ package easy.springboot.security.config;
 
 import easy.springboot.security.filter.BaseSecurityFilter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -25,16 +23,10 @@ import java.util.List;
 public class BaseSecurityConfiguration {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   BaseSecurityConfigurationSpec spec,
-                                                   BaseSecurityFilter filter) throws Exception {
-        http.csrf(spec.getCsrf().isEnabled() ? Customizer.withDefaults() : AbstractHttpConfigurer::disable);
-        http.cors(spec.getCors().isEnabled() ? Customizer.withDefaults() : AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests(
-                requests -> requests
-                        .requestMatchers(spec.getFilter().getExcludedUrls()).permitAll()
-                        .anyRequest().authenticated()
-        );
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, BaseSecurityConfigurationSpec spec, BaseSecurityFilter filter) {
+        http.csrf(spec.csrf().enabled() ? Customizer.withDefaults() : AbstractHttpConfigurer::disable);
+        http.cors(spec.cors().enabled() ? Customizer.withDefaults() : AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests(requests -> requests.requestMatchers(spec.filter().excludedUrls()).permitAll().anyRequest().authenticated());
         http.addFilterBefore(filter, SecurityContextHolderFilter.class);
         return http.build();
     }
@@ -42,20 +34,11 @@ public class BaseSecurityConfiguration {
     @Bean
     public CorsConfiguration corsConfiguration(BaseSecurityConfigurationSpec spec) {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        Arrays.stream(spec.getCors().getOrigins())
-                .forEach(corsConfiguration::addAllowedOriginPattern);
-        corsConfiguration.setAllowedHeaders(List.of(spec.getCors().getHeaders()));
-        corsConfiguration.setAllowedMethods(List.of(spec.getCors().getMethods()));
-        corsConfiguration.setAllowCredentials(spec.getCors().isWithCredentials());
+        BaseSecurityConfigurationSpec.BaseCorsConfiguration cors = spec.cors();
+        Arrays.stream(cors.origins()).forEach(corsConfiguration::addAllowedOriginPattern);
+        corsConfiguration.setAllowedHeaders(List.of(cors.headers()));
+        corsConfiguration.setAllowedMethods(List.of(cors.methods()));
+        corsConfiguration.setAllowCredentials(cors.withCredentials());
         return corsConfiguration;
-    }
-
-    @Bean
-    public FilterRegistrationBean<BaseSecurityFilter> filterRegistration(BaseSecurityFilter filter) {
-        FilterRegistrationBean<BaseSecurityFilter> filterRegistration = new FilterRegistrationBean<>();
-        filterRegistration.setFilter(filter);
-        filterRegistration.addUrlPatterns("/*");
-        filterRegistration.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER - 1);
-        return filterRegistration;
     }
 }

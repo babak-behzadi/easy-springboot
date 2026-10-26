@@ -16,19 +16,6 @@
 
 package easy.springboot.security.restriction;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+class PreAuthorizeBaseEndpointsServiceTest {
 
-/**
- * Declares the authorities accepted for access to an annotated controller class.
- * If multiple authorities are declared, any one matching authority grants access.
- * An empty list permits any authenticated, non-anonymous user.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface AuthorityRestriction {
-
-    String[] value() default {};
 }

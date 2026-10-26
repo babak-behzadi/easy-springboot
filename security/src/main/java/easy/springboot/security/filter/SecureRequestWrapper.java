@@ -37,9 +37,11 @@ public class SecureRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
         Collection<Part> parts = super.getParts();
-        parts.iterator().forEachRemaining(part -> {
+        if (configurationSpec.multipart().fileExtensions().length > 0) {
+            parts.iterator().forEachRemaining(part -> {
 
-        });
+            });
+        }
         return parts;
     }
 

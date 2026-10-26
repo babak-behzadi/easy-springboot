@@ -21,7 +21,7 @@ spring:
       filter:
         excluded-urls: /**
       multipart:
-        valid-file-extensions:
+        file-extensions:
           - jpeg
           - jpg
           - bmp

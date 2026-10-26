@@ -6,7 +6,7 @@ The `jpa` module provides reusable Spring Data JPA building blocks for repositor
 
 - JDK 17 or later.
 - Maven.
-- Spring Boot `4.1.1` as declared in this module's POM.
+- Spring Boot `4.1.2` as declared in this module's POM.
 - A configured database and JDBC driver in the consuming application.
 
 ## Build and test
