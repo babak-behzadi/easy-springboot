@@ -16,6 +16,13 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * Decorates an HTTP request and validates parsed multipart parts when requested.
+ *
+ * <p>Validation depends on the downstream code calling {@link #getParts()}.
+ * Multipart parsing errors can still be raised by the servlet container before
+ * any MIME-type check is performed.</p>
+ */
 public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     private final BaseSecurityConfigurationSpec configurationSpec;
@@ -31,6 +38,7 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
+        // Buffer the request body so this wrapper can provide a stream over the captured bytes.
         byte[] bodyBytes = super.getInputStream().readAllBytes();
         return new BaseCachedInputStream(bodyBytes);
     }
@@ -42,9 +50,15 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
+        // Let the servlet container parse multipart data, including its boundary and parts.
         Collection<Part> parts = super.getParts();
         if (configurationSpec.multipart().enabled()) {
             for (Part part : parts) {
+                // Regular form fields (for example, "id=1") are not uploaded files.
+                if (part.getSubmittedFileName() == null) {
+                    continue;
+                }
+                // Reject the request as soon as an uploaded file fails the MIME-type allowlist.
                 if (!fileChecker.check(part)) {
                     throw new InvalidFileType();
                 }
@@ -53,6 +67,12 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
         return parts;
     }
 
+    /**
+     * A synchronous ServletInputStream backed by an in-memory copy of request bytes.
+     *
+     * <p>This implementation does not support non-blocking reads; {@code setReadListener}
+     * is intentionally a no-op.</p>
+     */
     public static class BaseCachedInputStream extends ServletInputStream {
 
         private final ByteArrayInputStream input;

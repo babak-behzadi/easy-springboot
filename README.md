@@ -4,10 +4,10 @@ Reusable building blocks for Spring Boot applications using Spring Data JPA, Spr
 
 **Author:** Babak Behzadi
 
-The repository currently contains three independent Maven projects:
+The repository contains three independent Maven projects:
 
 - **`jpa`** — generic repository and service base classes, annotation-driven dynamic filters, query-result mapping, and reflection utilities.
-- **`security`** — an authority-restriction annotation and a service used by Spring method-security expressions.
+- **`security`** — authority restrictions, security configuration helpers, and optional multipart file MIME-type validation.
 - **`web`** — a generic Spring MVC controller that exposes find-by-ID and query endpoints using the JPA and Security modules.
 
 > **Project status:** This project is under development. The modules have example integration tests, but the API and behavior may change. Review the limitations below before using it in production.
@@ -22,15 +22,16 @@ The repository currently contains three independent Maven projects:
 - `QueryResult<R>` represents query rows together with page, page-size, and total-count metadata.
 - `EntityMutator` maps entity fields annotated with `@QueryResultField` to a response-friendly `Map<String, Object>`.
 
-See [the JPA module guide](jpa/README.md) for examples and supported filter operands.
+See the [JPA module guide](jpa/README.md) for examples, supported filter operands, mapping behavior, and testing notes.
 
 ### Security module
 
 - `@AuthorityRestriction` declares the authorities allowed to access a controller class.
 - `AuthorityRestrictionService` checks the current authentication and granted authorities.
-- The consuming application must enable method security and configure authentication and HTTP security rules.
+- Configurable CSRF, CORS, request exclusions, and multipart-upload MIME-type checks are provided by the security configuration.
+- Multipart validation uses Apache Tika to detect content types; it does not trust a file's name or client-provided MIME type alone.
 
-See [the Security module guide](security/README.md) for setup, examples, and security limitations.
+The consuming application must configure its authentication mechanism and review the supplied HTTP security defaults. See the [Security module guide](security/README.md) for configuration examples and limitations.
 
 ### Web module
 
@@ -39,7 +40,7 @@ See [the Security module guide](security/README.md) for setup, examples, and sec
   - `POST /query` — apply a filter model and return mapped query results.
 - The base endpoints use Spring Security method authorization through the Security module.
 
-Applications extend the base controller and supply their own entity, filter model, and service. See [the Web module guide](web/README.md).
+Applications extend the base controller and supply their own entity, filter model, and service. See the [Web module guide](web/README.md).
 
 ## Requirements
 
@@ -93,7 +94,8 @@ The JPA and Web modules include H2 as a test dependency. Configure a production 
 - Nested filter paths use inner joins, so rows without the related entity may not match.
 - Dynamic filters should only expose fields and operands that your application intends clients to query. Validate and constrain request data.
 - `EntityMutator` is a lightweight field mapper, not a substitute for explicit API DTOs. Review lazy-loaded relationships, null relationships, recursion/cycles, and sensitive-field handling for your domain.
-- The Security module only supplies a method-security helper. It does not configure authentication or the HTTP security filter chain for your application.
+- MIME detection is a useful file-type check, not a guarantee that a file is safe. Enforce upload-size limits, validate file contents for your use case, and store uploads safely.
+- The Security module does not create users or provide an authentication provider. Review the configured HTTP rules, CSRF/CORS settings, method-security rules, and multipart behavior before production use.
 - The Web base controller provides only basic find and query endpoints. Applications should add validation, application-specific error handling, DTOs, and endpoint tests as needed.
 - A root multi-module Maven build, CI workflow, and release/publishing instructions have not yet been added.
 

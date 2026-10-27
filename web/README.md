@@ -1,6 +1,6 @@
 # Easy Spring Boot — Web module
 
-The `web` module provides `BaseController<E, ID, F>`, an abstract Spring MVC controller that reuses the JPA module's service and result-mapping functionality and the Security module's method-authorization helper.
+The `web` module provides `BaseController<E, ID, F>`, an abstract Spring MVC controller that reuses the JPA module's service and result-mapping functionality and the Security module's method-authorization helper. See the [root README](../README.md) for the repository overview and module build order.
 
 ## Requirements
 
