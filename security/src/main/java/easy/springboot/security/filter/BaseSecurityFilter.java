@@ -27,19 +27,10 @@ public abstract class BaseSecurityFilter extends OncePerRequestFilter {
         this.fileChecker = fileChecker;
     }
 
-    private boolean isMultipart(HttpServletRequest request) {
-        String contentType = request.getContentType();
-        return contentType != null && contentType.contains("multipart/form-data");
-    }
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        SecureRequestWrapper wrapper = new SecureRequestWrapper(request, configurationSpec, fileChecker);
-        if (isMultipart(request) && configurationSpec.multipart().enabled()) {
-            wrapper.getParts();
-        }
-        filterChain.doFilter(wrapper, response);
+        filterChain.doFilter(new SecureRequestWrapper(request, configurationSpec, fileChecker), response);
     }
 }

@@ -5,7 +5,6 @@ import jakarta.servlet.http.Part;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,15 +29,10 @@ public class FileChecker {
             return true;
         }
         try (InputStream inputStream = part.getInputStream()) {
+            String detectedMimeType = tika.detect(inputStream);
             return validFileMimeTypes
                     .stream()
-                    .anyMatch(mimeType -> {
-                        try {
-                            return mimeType.getMimeTypes().contains(tika.detect(inputStream));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    .anyMatch(mimeType -> mimeType.getMimeTypes().contains(detectedMimeType));
         } catch (Exception e) {
             return false;
         }
