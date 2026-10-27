@@ -54,7 +54,11 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
         Collection<Part> parts = super.getParts();
         if (configurationSpec.multipart().enabled()) {
             for (Part part : parts) {
-                // Reject the request as soon as a part fails the configured MIME-type allowlist.
+                // Regular form fields (for example, "id=1") are not uploaded files.
+                if (part.getSubmittedFileName() == null) {
+                    continue;
+                }
+                // Reject the request as soon as an uploaded file fails the MIME-type allowlist.
                 if (!fileChecker.check(part)) {
                     throw new InvalidFileType();
                 }
