@@ -38,7 +38,7 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
                                      String[] headers,
                                      boolean withCredentials) {
             this.enabled = enabled;
-            this.origins = origins == null ? new String[]{"**"} : origins;
+            this.origins = origins == null ? new String[]{"/**"} : origins;
             this.methods = methods == null ? new String[]{"*"} : methods;
             this.headers = headers == null ? new String[]{"*"} : headers;
             this.withCredentials = withCredentials;
