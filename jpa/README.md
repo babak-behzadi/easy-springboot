@@ -1,6 +1,6 @@
 # Easy Spring Boot — JPA module
 
-The `jpa` module provides reusable Spring Data JPA building blocks for repositories, services, dynamic filtering, and mapping selected entity fields into query results.
+The `jpa` module provides reusable Spring Data JPA building blocks for repositories, services, dynamic filtering, and mapping selected entity fields into query results. See the [root README](../README.md) for the repository overview and module build order.
 
 ## Requirements
 
