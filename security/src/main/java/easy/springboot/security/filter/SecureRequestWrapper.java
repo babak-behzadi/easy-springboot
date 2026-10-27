@@ -44,11 +44,14 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
     public Collection<Part> getParts() throws IOException, ServletException {
         Collection<Part> parts = super.getParts();
         if (configurationSpec.multipart().enabled()) {
-            parts.iterator().forEachRemaining(part -> {
+            for (Part part : parts) {
+                if (part.getSubmittedFileName() == null) {
+                    continue;
+                }
                 if (!fileChecker.check(part)) {
                     throw new InvalidFileType();
                 }
-            });
+            }
         }
         return parts;
     }
