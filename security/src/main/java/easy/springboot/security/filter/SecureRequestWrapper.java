@@ -1,6 +1,8 @@
 package easy.springboot.security.filter;
 
 import easy.springboot.security.config.BaseSecurityConfigurationSpec;
+import easy.springboot.security.exception.InvalidFileType;
+import easy.springboot.security.multipart.FileChecker;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -14,13 +16,17 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
-public class SecureRequestWrapper extends HttpServletRequestWrapper {
+public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     private final BaseSecurityConfigurationSpec configurationSpec;
+    private final FileChecker fileChecker;
 
-    public SecureRequestWrapper(HttpServletRequest request, BaseSecurityConfigurationSpec configurationSpec) {
+    public SecureRequestWrapper(HttpServletRequest request,
+                                BaseSecurityConfigurationSpec configurationSpec,
+                                FileChecker fileChecker) {
         super(request);
         this.configurationSpec = configurationSpec;
+        this.fileChecker = fileChecker;
     }
 
     @Override
@@ -37,9 +43,11 @@ public class SecureRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
         Collection<Part> parts = super.getParts();
-        if (configurationSpec.multipart().fileExtensions().length > 0) {
+        if (configurationSpec.multipart().enabled()) {
             parts.iterator().forEachRemaining(part -> {
-
+                if (!fileChecker.check(part)) {
+                    throw new InvalidFileType();
+                }
             });
         }
         return parts;

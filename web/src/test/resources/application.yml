@@ -19,8 +19,9 @@ spring:
           - POST
           - GET
       filter:
-        excluded-urls: /**
+        excluded-urls:
       multipart:
+        enabled: true
         file-extensions:
           - jpeg
           - jpg

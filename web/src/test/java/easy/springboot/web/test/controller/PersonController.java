@@ -7,12 +7,11 @@ import easy.springboot.web.test.domain.Person;
 import easy.springboot.web.test.model.PersonModel;
 import easy.springboot.web.test.query.PersonFilterModel;
 import easy.springboot.web.test.service.PersonService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("person")
@@ -37,5 +36,12 @@ public class PersonController extends BaseController<Person, Long, PersonFilterM
     @PreAuthorize("hasAnyAuthority('USER')")
     public ResponseEntity<Person> save(@RequestBody PersonModel personModel) {
         return ResponseEntity.ok(getService().save(personModel));
+    }
+
+    @PostMapping(value = "uploadPhoto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('USER')")
+    public ResponseEntity<?> uploadPhoto(@RequestPart("photo") MultipartFile photo,
+                                         @RequestParam Long id) {
+          return ResponseEntity.ok(service.savePhoto(photo, id));
     }
 }

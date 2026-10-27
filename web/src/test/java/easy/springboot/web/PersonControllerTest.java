@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -19,6 +20,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,6 +96,23 @@ public class PersonControllerTest {
                 .andExpect(jsonPath("$.rows.length()").value(1))
                 .andExpect(jsonPath("$.rows[0].firstName").value("Babak"))
                 .andDo(print());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", authorities = {"USER"})
+    void upload_photo() throws Exception {
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "photo.png",
+                MediaType.IMAGE_PNG_VALUE,
+                getClass().getResourceAsStream("photo.png")
+        );
+        mockMvc.perform(
+                        multipart("/person/uploadPhoto")
+                                .file(photo)
+                                .param("id", "1")
+                )
+                .andExpect(status().isOk());
     }
 
 }

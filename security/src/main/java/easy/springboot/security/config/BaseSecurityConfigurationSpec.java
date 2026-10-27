@@ -37,9 +37,11 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
         }
     }
 
-    public record BaseMultipartConfiguration(String[] fileExtensions) {
+    public record BaseMultipartConfiguration(boolean enabled,
+                                             String[] fileExtensions) {
 
-        public BaseMultipartConfiguration(String[] fileExtensions) {
+        public BaseMultipartConfiguration(boolean enabled, String[] fileExtensions) {
+            this.enabled = enabled;
             this.fileExtensions = fileExtensions == null ? new String[0] : fileExtensions;
         }
     }

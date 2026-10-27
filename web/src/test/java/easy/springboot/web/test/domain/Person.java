@@ -20,6 +20,9 @@ public class Person extends BaseEntity {
     private String lastName;
     @QueryResultField
     private Date birthDate;
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private Byte[] photo;
 
     public Long getId() {
         return id;
@@ -51,5 +54,13 @@ public class Person extends BaseEntity {
 
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public Byte[] getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(Byte[] photo) {
+        this.photo = photo;
     }
 }
