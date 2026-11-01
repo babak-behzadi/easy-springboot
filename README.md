@@ -4,56 +4,60 @@ Reusable building blocks for Spring Boot applications using Spring Data JPA, Spr
 
 **Author:** Babak Behzadi
 
-The repository contains three independent Maven projects:
+Easy Spring Boot is organized as three independent Maven modules:
 
-- **`jpa`** — generic repository and service base classes, annotation-driven dynamic filters, query-result mapping, and reflection utilities.
-- **`security`** — authority restrictions, security configuration helpers, and optional multipart file MIME-type validation.
-- **`web`** — a generic Spring MVC controller that exposes find-by-ID and query endpoints using the JPA and Security modules.
+- **JPA** — generic repositories and services, annotation-driven dynamic filtering, query-result mapping, and reflection utilities.
+- **Security** — authority restrictions for inherited endpoints, request-body injection-pattern checks, and optional multipart file MIME-type validation.
+- **Web** — a reusable Spring MVC base controller that combines the JPA service API with the Security module's endpoint restrictions.
 
-> **Project status:** This project is under development. The modules have example integration tests, but the API and behavior may change. Review the limitations below before using it in production.
+> **Status:** This project is under development. Public APIs and behavior may change. The modules are helper libraries, not complete application frameworks; review the limitations and security notes before production use.
 
-## Features
+## Modules
 
-### JPA module
+### JPA
 
-- `BaseRepository<E, ID>` extends Spring Data JPA's `JpaRepository` and `JpaSpecificationExecutor`.
-- `BaseService<E, ID, R>` provides common find, save, delete, query, and result-mapping operations.
-- `FilterModel` builds a JPA `Specification` from fields annotated with `@FilterField`.
-- `QueryResult<R>` represents query rows together with page, page-size, and total-count metadata.
-- `EntityMutator` maps entity fields annotated with `@QueryResultField` to a response-friendly `Map<String, Object>`.
+The `jpa` module includes:
 
-See the [JPA module guide](jpa/README.md) for examples, supported filter operands, mapping behavior, and testing notes.
+- `BaseRepository<E, ID>`, extending Spring Data JPA's `JpaRepository` and `JpaSpecificationExecutor`.
+- `BaseService<E, ID, R>` for common find, save, delete, paginated query, and entity-mapping operations.
+- `FilterModel` and `@FilterField` for constructing JPA `Specification` predicates from annotated filter properties.
+- `QueryResult<R>` for query rows and pagination metadata.
+- `EntityMutator` and `@QueryResultField` for mapping selected entity fields into response maps.
 
-### Security module
+See [jpa/README.md](jpa/README.md) for examples and supported operands.
 
-- `@AuthorityRestriction` declares the authorities allowed to access a controller class.
-- `AuthorityRestrictionService` checks the current authentication and granted authorities.
-- Configurable CSRF, CORS, request exclusions, and multipart-upload MIME-type checks are provided by the security configuration.
-- Multipart validation uses Apache Tika to detect content types; it does not trust a file's name or client-provided MIME type alone.
+### Security
 
-The consuming application must configure its authentication mechanism and review the supplied HTTP security defaults. See the [Security module guide](security/README.md) for configuration examples and limitations.
+The `security` module includes:
 
-### Web module
+- `@BaseEndpointsAuthorityRestriction` and `@BaseEndpoint` for declaring required authorities by inherited endpoint name.
+- `@PreAuthorizeBaseEndpoint` as the method marker used by the authority-restriction aspect.
+- `BaseSecurityConfiguration` for Spring Security filter-chain, CSRF, CORS, and excluded-request configuration.
+- `InjectionDetector` for heuristic regular-expression checks for SQL-like, script-like, and HTML-like patterns in request-body bytes.
+- `FileChecker` and `FileMimeType` for Apache Tika content-based MIME detection of uploaded file parts.
 
-- `BaseController<E, ID, F>` provides:
-  - `GET /find?id=...` — look up an entity by ID and return its mapped fields.
-  - `POST /query` — apply a filter model and return mapped query results.
-- The base endpoints use Spring Security method authorization through the Security module.
+**Security limitation:** pattern matching is only a heuristic. It is not a substitute for parameterized SQL, contextual output encoding, input validation, a robust HTML sanitizer, or application-specific security controls. See [security/README.md](security/README.md) for the exact scope and configuration behavior.
 
-Applications extend the base controller and supply their own entity, filter model, and service. See the [Web module guide](web/README.md).
+### Web
+
+The `web` module provides `BaseController<E, ID, F>` with:
+
+- `GET /find?id=...` to find an entity and return fields selected by `@QueryResultField`.
+- `POST /query` to apply a filter model and return mapped query results.
+
+A concrete controller supplies the service and request mapping. See [web/README.md](web/README.md) for an example.
 
 ## Requirements
 
 - JDK 17 or later.
 - Maven.
-- A database and JDBC driver configured by the consuming application for runtime use.
-- Authentication and authorization configuration in consuming applications that use the Security or Web modules.
-
-The POMs currently use Spring Boot `4.1.2`. Check each module POM if you need to align versions with your application.
+- Spring Boot version declared in each module POM (currently `4.1.2`).
+- A database and JDBC driver configured by the consuming application for JPA use.
+- Application-specific authentication and authorization configuration for protected endpoints.
 
 ## Build
 
-The modules are separate Maven projects; there is no root aggregator POM. Web depends on both JPA and Security, so install those artifacts locally before building Web.
+The modules have separate Maven POMs; there is no root aggregator POM. The Web module depends on the JPA and Security artifacts, so install those modules before building Web.
 
 From the repository root:
 
@@ -63,48 +67,34 @@ mvn -f security/pom.xml clean install
 mvn -f web/pom.xml clean verify
 ```
 
-Run individual module tests with:
+Run the individual test suites with:
 
 ```bash
 mvn -f jpa/pom.xml clean verify
 mvn -f security/pom.xml clean verify
+mvn -f web/pom.xml clean verify
 ```
 
-The JPA and Web modules include H2 as a test dependency. Configure a production database separately in the application that consumes the library.
+## Security considerations and known limitations
 
-## Repository layout
-
-```text
-.
-├── jpa/
-│   ├── src/main/java/
-│   └── README.md
-├── security/
-│   ├── src/main/java/
-│   └── README.md
-└── web/
-    ├── src/main/java/
-    └── README.md
-```
-
-## Important limitations
-
-- `BaseService.query()` currently caps page size at 10 and does not apply the `Sort` value held by `FilterModel`.
-- `queryAll()` loads all matching rows into memory. Avoid it for large result sets.
-- Nested filter paths use inner joins, so rows without the related entity may not match.
-- Dynamic filters should only expose fields and operands that your application intends clients to query. Validate and constrain request data.
-- `EntityMutator` is a lightweight field mapper, not a substitute for explicit API DTOs. Review lazy-loaded relationships, null relationships, recursion/cycles, and sensitive-field handling for your domain.
-- MIME detection is a useful file-type check, not a guarantee that a file is safe. Enforce upload-size limits, validate file contents for your use case, and store uploads safely.
-- The Security module does not create users or provide an authentication provider. Review the configured HTTP rules, CSRF/CORS settings, method-security rules, and multipart behavior before production use.
-- The Web base controller provides only basic find and query endpoints. Applications should add validation, application-specific error handling, DTOs, and endpoint tests as needed.
-- A root multi-module Maven build, CI workflow, and release/publishing instructions have not yet been added.
+- `InjectionDetector` applies regex heuristics when the wrapped request's `getInputStream()` is read. It does not comprehensively inspect query parameters, servlet parameters, multipart fields, or every possible request representation. Regex checks can produce false positives and false negatives.
+- The configured `customPattern` property is present in the injection configuration record, but the current `InjectionDetector` implementation does not use it.
+- Do not rely on injection-pattern matching to prevent SQL injection. Use parameterized queries and safe ORM APIs. Encode output for its destination context and sanitize HTML with a purpose-built sanitizer when accepting rich HTML.
+- Multipart file checks run through servlet `Part` parsing when `getParts()` is requested. Apache Tika MIME detection does not prove that a file is harmless or structurally valid.
+- Set request and file size limits, generate server-side filenames, store uploads safely, and add format-specific validation where needed.
+- `BaseService.query()` currently clamps page size to at most 10 and does not apply the `Sort` value in `FilterModel`.
+- `queryAll()` loads all matching entities into memory; avoid it for large result sets.
+- Nested filter paths use inner joins, which can exclude rows without the related entity.
+- `EntityMutator` is a lightweight map mapper, not a replacement for explicit API DTOs. Review lazy loading, null relationships, object cycles, and sensitive-field exposure.
+- The base Web controller provides find and query endpoints only. Consuming applications remain responsible for request validation, DTO design, error handling, and endpoint-specific tests.
+- Review Spring Security's HTTP rules, authentication mechanism, method security, CSRF/CORS policy, and authority names for your application before production use.
 
 ## Contributing
 
-Issues and pull requests are welcome. Please include tests for behavior changes and verify the affected modules with the commands above when changing shared APIs.
+Issues and pull requests are welcome. Include tests for behavior changes and verify each affected module with the commands above.
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](LICENSE).
+Licensed under the [Apache License, Version 2.0](LICENSE).
 
 Copyright 2026 Babak Behzadi.

@@ -30,6 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Provides reusable persistence operations over a {@link BaseRepository}, including
+ * specification-based queries and mapping entities into response maps.
+ *
+ * @param <E> entity type
+ * @param <ID> entity identifier type
+ * @param <R> repository type
+ */
 public abstract class BaseService<E extends BaseEntity, ID, R extends BaseRepository<E, ID>> {
 
     private final R repository;

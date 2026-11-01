@@ -32,6 +32,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Configures the module's servlet security filter chain, CSRF/CORS behavior,
+ * excluded request matchers, and Spring method-security support.
+ *
+ * <p>Applications still need to supply their own authentication mechanism and
+ * review these settings for their deployment.</p>
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

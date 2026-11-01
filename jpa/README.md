@@ -181,3 +181,9 @@ Prefer self-contained tests: create the data needed by each test rather than rel
 ## Current scope
 
 This module is a developing utility library, not a complete persistence or API security framework. Review transaction boundaries, lazy-loaded relationships, null relationships, cyclic entity graphs, pagination/count-query performance, exception handling, and database-specific behavior before production use.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](../LICENSE).
+
+Copyright 2026 Babak Behzadi.

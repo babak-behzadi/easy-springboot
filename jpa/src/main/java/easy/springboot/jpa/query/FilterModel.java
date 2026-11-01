@@ -33,6 +33,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Base request model for building JPA {@link Specification} predicates from
+ * fields annotated with {@link FilterField}.
+ *
+ * <p>Only non-null annotated fields contribute predicates. Pagination values are
+ * consumed by {@code BaseService}; sorting support depends on the service implementation.</p>
+ */
 public abstract class FilterModel implements Serializable {
 
     private int page;
