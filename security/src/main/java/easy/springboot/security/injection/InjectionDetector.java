@@ -20,6 +20,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
+/**
+ * Applies heuristic regular-expression checks to detect selected SQL-like,
+ * script-like, and HTML-like patterns in text.
+ *
+ * <p>This class is not a parser, sanitizer, or complete injection-prevention
+ * mechanism. Patterns may produce false positives and false negatives.</p>
+ */
 @Component
 public class InjectionDetector {
 
@@ -36,14 +43,17 @@ public class InjectionDetector {
                     "\\s*\\(|\\b(alert|prompt|confirm)\\s*\\(|document\\s*\\.\\s*(cookie|write))");
     private static final Pattern HTML_PATTERN = Pattern.compile("(?is)<\\s*/?\\s*[a-z][a-z0-9:-]*\\b[^>]*>");
 
+    /** Returns whether the text matches the detector's SQL-like pattern. */
     public boolean checkSqlInjection(String text) {
         return SQL_PATTERN.matcher(text).find();
     }
 
+    /** Returns whether the text matches the detector's script-like pattern. */
     public boolean checkScriptInjection(String text) {
         return SCRIPT_PATTERN.matcher(text).find();
     }
 
+    /** Returns whether the text contains a pattern resembling an HTML tag. */
     public boolean checkHtmlInjection(String text) {
         return HTML_PATTERN.matcher(text).find();
     }
@@ -52,6 +62,10 @@ public class InjectionDetector {
         return checkSqlInjection(text) || checkScriptInjection(text) || checkHtmlInjection(text);
     }
 
+    /**
+     * Decodes bytes using the platform default charset and applies all configured
+     * built-in checks. Callers should provide text in the expected request encoding.
+     */
     public boolean checkInjection(byte[] bytes) {
         String text = new String(bytes);
         return checkInjection(text);
