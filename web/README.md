@@ -23,30 +23,38 @@ The repository has independent module POMs rather than a root aggregator POM. Th
 
 ## Security setup
 
-The inherited `find` and `query` endpoints use `@PreAuthorize("@authorityRestrictionService.hasAccess(#root.this)")`. Enable method security in your consuming application and annotate each concrete controller with `@AuthorityRestriction`:
+The inherited `find` and `query` methods are marked with the Security module's `@PreAuthorizeBaseEndpoint` annotation. The Security module enables Spring method security through `BaseSecurityConfiguration`. Declare required authorities for each inherited endpoint on the concrete controller using `@BaseEndpointsAuthorityRestriction` and nested `@BaseEndpoint` annotations:
 
 ```java
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import easy.springboot.security.restriction.BaseEndpoint;
+import easy.springboot.security.restriction.BaseEndpointsAuthorityRestriction;
 
-@Configuration
-@EnableMethodSecurity
-class MethodSecurityConfig {
+@BaseEndpointsAuthorityRestriction({
+    @BaseEndpoint(value = "find", authorities = {"USER"}),
+    @BaseEndpoint(value = "query", authorities = {"USER"})
+})
+@RestController
+@RequestMapping("person")
+public class PersonController extends BaseController<Person, Long, PersonFilter> {
+    // Implement the service accessor required by BaseController.
 }
 ```
 
 ```java
 @RestController
 @RequestMapping("person")
-@AuthorityRestriction({"ROLE_USER"})
+@BaseEndpointsAuthorityRestriction({
+    @BaseEndpoint(value = "find", authorities = {"USER"}),
+    @BaseEndpoint(value = "query", authorities = {"USER"})
+})
 public class PersonController
         extends BaseController<Person, Long, PersonFilter> {
     // Inject and return the application's PersonService.
 }
 ```
 
-Use the exact authority names granted by your authentication setup. Multiple values in `@AuthorityRestriction` use OR semantics: any one matching authority is sufficient. An empty restriction allows any authenticated, non-anonymous user; prefer explicit authorities for protected endpoints.
+Use the exact authority names granted by your authentication setup. The current advice checks that the granted-authority set contains all authorities listed for the matched endpoint. If an endpoint has no matching `@BaseEndpoint` declaration, access is denied.
 
 This library does not configure your authentication provider, users, login, CSRF policy, or HTTP security filter chain. You must configure those according to your application and test that authorization behaves as intended.
 
@@ -120,3 +128,9 @@ The response contains `page`, `pageSize`, `total`, and `rows`. Exact JSON date f
 ## Current limitations
 
 The base controller intentionally provides only basic find and query endpoints. It does not provide save/update/delete HTTP endpoints, application-specific request validation, or a standardized error-response schema. Authorization depends on correct Spring method-security and application security configuration.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](../LICENSE).
+
+Copyright 2026 Babak Behzadi.
