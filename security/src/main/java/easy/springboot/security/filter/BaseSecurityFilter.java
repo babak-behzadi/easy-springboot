@@ -32,9 +32,10 @@ import java.io.IOException;
 /**
  * Installs the request wrapper used by the security module.
  *
- * <p>Multipart validation runs when the servlet container or Spring's multipart
- * resolver asks the wrapped request for its {@code Part} objects. This filter
- * does not eagerly parse every request body itself.</p>
+ * <p>The wrapper performs body-pattern checks only if downstream code reads the
+ * request input stream. Multipart file validation occurs when the servlet
+ * container or Spring's multipart resolver requests the wrapped request's
+ * {@code Part} objects; this filter does not eagerly parse request bodies.</p>
  */
 public abstract class BaseSecurityFilter extends OncePerRequestFilter {
 
