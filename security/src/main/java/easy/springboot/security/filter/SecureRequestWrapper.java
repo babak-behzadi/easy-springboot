@@ -2,6 +2,8 @@ package easy.springboot.security.filter;
 
 import easy.springboot.security.config.BaseSecurityConfigurationSpec;
 import easy.springboot.security.exception.InvalidFileType;
+import easy.springboot.security.exception.MaliciousContentException;
+import easy.springboot.security.injection.InjectionDetector;
 import easy.springboot.security.multipart.FileChecker;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
@@ -27,19 +29,26 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     private final BaseSecurityConfigurationSpec configurationSpec;
     private final FileChecker fileChecker;
+    private final InjectionDetector injectionDetector;
 
     public SecureRequestWrapper(HttpServletRequest request,
                                 BaseSecurityConfigurationSpec configurationSpec,
-                                FileChecker fileChecker) {
+                                FileChecker fileChecker,
+                                InjectionDetector injectionDetector) {
         super(request);
         this.configurationSpec = configurationSpec;
         this.fileChecker = fileChecker;
+        this.injectionDetector = injectionDetector;
     }
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
         // Buffer the request body so this wrapper can provide a stream over the captured bytes.
         byte[] bodyBytes = super.getInputStream().readAllBytes();
+        if (configurationSpec.injection().enabled() &&
+                injectionDetector.checkInjection(bodyBytes)) {
+            throw new MaliciousContentException();
+        }
         return new BaseCachedInputStream(bodyBytes);
     }
 

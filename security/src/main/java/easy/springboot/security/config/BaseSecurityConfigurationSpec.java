@@ -11,9 +11,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
                                             BaseCsrfConfiguration csrf,
                                             BaseCorsConfiguration cors,
-                                            BaseMultipartConfiguration multipart) {
+                                            BaseMultipartConfiguration multipart,
+                                            BaseInjectionConfiguration injection) {
 
-    /** Paths excluded from the configured authentication requirement. */
+    /**
+     * Paths excluded from the configured authentication requirement.
+     */
     public record BaseFilterConfiguration(String[] excludedUrls) {
 
         public BaseFilterConfiguration(String[] excludedUrls) {
@@ -21,11 +24,15 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
         }
     }
 
-    /** Controls whether CSRF protection is enabled. */
+    /**
+     * Controls whether CSRF protection is enabled.
+     */
     public record BaseCsrfConfiguration(boolean enabled) {
     }
 
-    /** Controls CORS behavior for the consuming application. */
+    /**
+     * Controls CORS behavior for the consuming application.
+     */
     public record BaseCorsConfiguration(boolean enabled,
                                         String[] origins,
                                         String[] methods,
@@ -45,7 +52,9 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
         }
     }
 
-    /** Controls multipart MIME-type checks and the extensions used to build the allowlist. */
+    /**
+     * Controls multipart MIME-type checks and the extensions used to build the allowlist.
+     */
     public record BaseMultipartConfiguration(boolean enabled,
                                              String[] fileExtensions) {
 
@@ -53,5 +62,9 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
             this.enabled = enabled;
             this.fileExtensions = fileExtensions == null ? new String[0] : fileExtensions;
         }
+    }
+
+    public record BaseInjectionConfiguration(boolean enabled, String customPattern) {
+
     }
 }

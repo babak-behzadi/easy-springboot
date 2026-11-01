@@ -1,6 +1,7 @@
 package easy.springboot.security.filter;
 
 import easy.springboot.security.config.BaseSecurityConfigurationSpec;
+import easy.springboot.security.injection.InjectionDetector;
 import easy.springboot.security.multipart.FileChecker;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +24,7 @@ public abstract class BaseSecurityFilter extends OncePerRequestFilter {
 
     private BaseSecurityConfigurationSpec configurationSpec;
     private FileChecker fileChecker;
+    private InjectionDetector injectionDetector;
 
     @Autowired
     public void setConfigurationSpec(BaseSecurityConfigurationSpec configurationSpec) {
@@ -34,11 +36,16 @@ public abstract class BaseSecurityFilter extends OncePerRequestFilter {
         this.fileChecker = fileChecker;
     }
 
+    @Autowired
+    public void setInjectionDetector(InjectionDetector injectionDetector) {
+        this.injectionDetector = injectionDetector;
+    }
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         // Wrap the request so multipart parts can be checked when parsed downstream.
-        filterChain.doFilter(new SecureRequestWrapper(request, configurationSpec, fileChecker), response);
+        filterChain.doFilter(new SecureRequestWrapper(request, configurationSpec, fileChecker, injectionDetector), response);
     }
 }
