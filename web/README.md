@@ -23,25 +23,17 @@ The repository has independent module POMs rather than a root aggregator POM. Th
 
 ## Security setup
 
-The inherited `find` and `query` methods are marked with the Security module's `@PreAuthorizeBaseEndpoint` annotation. The Security module enables Spring method security through `BaseSecurityConfiguration`. Declare required authorities for each inherited endpoint on the concrete controller using `@BaseEndpointsAuthorityRestriction` and nested `@BaseEndpoint` annotations:
+The inherited `find` and `query` methods are marked with the Security module's `@PreAuthorizeBaseEndpoint` annotation. The Security module's `BaseSecurityConfiguration` enables Spring method security.
+
+Declare authorities for each inherited endpoint on the concrete controller with `@BaseEndpointsAuthorityRestriction` and nested `@BaseEndpoint` annotations:
 
 ```java
-
 import easy.springboot.security.restriction.BaseEndpoint;
 import easy.springboot.security.restriction.BaseEndpointsAuthorityRestriction;
+import easy.springboot.web.controller.BaseController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@BaseEndpointsAuthorityRestriction({
-    @BaseEndpoint(value = "find", authorities = {"USER"}),
-    @BaseEndpoint(value = "query", authorities = {"USER"})
-})
-@RestController
-@RequestMapping("person")
-public class PersonController extends BaseController<Person, Long, PersonFilter> {
-    // Implement the service accessor required by BaseController.
-}
-```
-
-```java
 @RestController
 @RequestMapping("person")
 @BaseEndpointsAuthorityRestriction({
@@ -50,13 +42,13 @@ public class PersonController extends BaseController<Person, Long, PersonFilter>
 })
 public class PersonController
         extends BaseController<Person, Long, PersonFilter> {
-    // Inject and return the application's PersonService.
+    // Implement the service accessor required by BaseController.
 }
 ```
 
-Use the exact authority names granted by your authentication setup. The current advice checks that the granted-authority set contains all authorities listed for the matched endpoint. If an endpoint has no matching `@BaseEndpoint` declaration, access is denied.
+Authority names must exactly match values supplied by the application's `GrantedAuthority` instances. The current advice requires the authenticated user's granted-authority set to contain all authorities declared for the matched endpoint. If no matching endpoint declaration exists, access is denied.
 
-This library does not configure your authentication provider, users, login, CSRF policy, or HTTP security filter chain. You must configure those according to your application and test that authorization behaves as intended.
+This module does not configure the application's authentication provider, users, login, or identity provider. Configure and test authentication and the HTTP security policy in the consuming application.
 
 ## Provided endpoints
 
