@@ -21,6 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Declares endpoint-specific authority requirements for a controller type.
+ * Each entry associates an inherited endpoint method name with granted authorities.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface BaseEndpointsAuthorityRestriction {
