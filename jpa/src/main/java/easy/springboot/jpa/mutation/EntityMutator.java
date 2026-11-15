@@ -31,6 +31,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+/**
+ * Converts selected entity fields into a map using {@link QueryResultField} metadata.
+ * This mapper is not a substitute for API-specific response DTOs.
+ */
 public class EntityMutator {
 
     /**

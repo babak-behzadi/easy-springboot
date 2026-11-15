@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 Babak Behzadi
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package easy.springboot.security.filter;
 
 import easy.springboot.security.config.BaseSecurityConfigurationSpec;
@@ -19,11 +35,13 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Decorates an HTTP request and validates parsed multipart parts when requested.
+ * Decorates an HTTP request with optional request-body pattern checks and multipart
+ * file MIME-type validation.
  *
- * <p>Validation depends on the downstream code calling {@link #getParts()}.
- * Multipart parsing errors can still be raised by the servlet container before
- * any MIME-type check is performed.</p>
+ * <p>The injection-pattern check runs only when downstream code reads
+ * {@link #getInputStream()}; it does not inspect every parameter source. Multipart
+ * validation depends on the servlet container parsing parts through {@link #getParts()}.
+ * Container parsing errors can occur before a file MIME-type check is performed.</p>
  */
 public final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
@@ -41,6 +59,10 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
         this.injectionDetector = injectionDetector;
     }
 
+    /**
+     * Reads and buffers the request body, optionally rejecting it when a built-in
+     * injection heuristic matches. The body is held in memory for replay by callers.
+     */
     @Override
     public ServletInputStream getInputStream() throws IOException {
         // Buffer the request body so this wrapper can provide a stream over the captured bytes.
@@ -57,6 +79,10 @@ public final class SecureRequestWrapper extends HttpServletRequestWrapper {
         return super.getParameterMap();
     }
 
+    /**
+     * Parses multipart data using the underlying servlet request and validates
+     * uploaded file parts when multipart checking is enabled.
+     */
     @Override
     public Collection<Part> getParts() throws IOException, ServletException {
         // Let the servlet container parse multipart data, including its boundary and parts.

@@ -80,7 +80,12 @@ public record BaseSecurityConfigurationSpec(BaseFilterConfiguration filter,
         }
     }
 
+    /**
+     * Controls the built-in request-body pattern checks.
+     *
+     * <p>{@code customPattern} is currently bound from configuration but is not
+     * consumed by {@code InjectionDetector}.</p>
+     */
     public record BaseInjectionConfiguration(boolean enabled, String customPattern) {
-
     }
 }
